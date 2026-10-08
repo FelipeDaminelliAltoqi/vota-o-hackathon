@@ -1,0 +1,39 @@
+# Site 100% estático: sem build.
+[build]
+  publish = "."
+  command = ""
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/config.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/assets/*.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/assets/*.css"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/admin*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+# Endereços curtos
+[[redirects]]
+  from = "/resultados"
+  to = "/resultados.html"
+  status = 200
+[[redirects]]
+  from = "/banca"
+  to = "/banca.html"
+  status = 200
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200

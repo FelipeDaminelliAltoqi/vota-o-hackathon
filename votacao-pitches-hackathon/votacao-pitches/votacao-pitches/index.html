@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A0A0A">
+<title>Votação dos pitches · Hackathon AltoQi</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/big-shoulders-display-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/base.css">
+<script src="config.js"></script>
+<script src="assets/comum.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 1. Identificação (e-mail → setor ou código da banca) -->
+  <section id="telaEntrada" class="entrada" hidden>
+    <div class="topo"><img class="logo" src="assets/hackathon-wordmark.svg" alt="Hackathon AltoQi" width="120" height="30"></div>
+    <div class="hero">
+      <p class="eyebrow">Votação dos pitches</p>
+      <h1 class="display" id="tituloEntrada">Identifique-se para votar</h1>
+      <p id="textoEntrada">Você vai avaliar cada pitch em 3 critérios: Inovar, Conectar e Transformar.</p>
+    </div>
+    <form id="formEntrada" novalidate>
+      <div class="campo" id="campoEmail">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" required>
+      </div>
+      <div class="etapa-email" id="emailFixo" hidden><span id="emailFixoTxt"></span><button type="button" class="link" id="trocarEmail">Trocar</button></div>
+      <div class="campo" id="campoSetor" hidden><label for="setor">Setor em que atua</label></div>
+      <div class="campo" id="campoCodigo" hidden>
+        <label for="codigo">Código da banca</label>
+        <input id="codigo" type="text" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false">
+        <small>Código de 6 letras enviado pela organização.</small>
+      </div>
+      <p class="erro-msg" id="erroEntrada" role="alert"></p>
+      <button class="btn" type="submit" id="btnEntrar">Continuar</button>
+      <p class="nota" id="notaEntrada">Cada pessoa vota uma única vez em cada pitch, e o voto não pode ser alterado depois de confirmado. O e-mail serve só para garantir isso.</p>
+    </form>
+  </section>
+
+  <!-- 2. Votação -->
+  <section id="telaVoto" hidden>
+    <div class="topo">
+      <img class="logo" src="assets/hackathon-wordmark.svg" alt="Hackathon AltoQi" width="120" height="30">
+      <div class="quem"><span id="quemRotulo">Votando como</span><b id="quemEmail"></b><button type="button" class="link" id="sair">Não é você?</button></div>
+    </div>
+    <div class="hero">
+      <p class="eyebrow" id="eyebrowVoto">Votação popular</p>
+      <h1 class="display" id="pergunta"></h1>
+      <span class="tag-banca" id="tagBanca" hidden>Seu voto conta como banca</span>
+      <div class="legenda">
+        <div><b>0</b><span id="rotMin"></span></div>
+        <div class="max"><b>5</b><span id="rotMax"></span></div>
+      </div>
+    </div>
+    <div class="progresso" aria-live="polite">
+      <p><strong id="progTxt"></strong><span id="progDica"></span></p>
+      <div class="prog-trilho"><div class="prog-barra" id="progBarra"></div></div>
+    </div>
+    <div class="aviso erro" id="aviso" role="alert" hidden></div>
+    <ol class="pitches" id="lista"></ol>
+    <p class="rodape" id="rodape"></p>
+    <div class="assinatura"><img src="assets/hackathon-wordmark.svg" alt="" width="96" height="24"></div>
+  </section>
+</div>
+
+<script>
+(function(){
+  const { C, DEMO, CRIT, dois, fmt, media3, esc, mensagem, api, lerConfig, lerStatus, criarAvaliacao } = HQ;
+  const $ = (id) => document.getElementById(id);
+  const CHAVE = DEMO ? "hq-voto:demo3" : "hq-voto:v3";
+  const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"/></svg>';
+  const SETA = '<svg class="seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+  const STATUS_POLL = 8000;
+
+  // est: { tipo:"popular"|"banca", email, setor, codigo, nome, rodada, votos:{[id]:[i,c,t]|true}, impedidos:[] }
+  const ler = () => { try{ return JSON.parse(localStorage.getItem(CHAVE)) || {}; }catch(e){ return {}; } };
+  let est = ler(); est.votos = est.votos || {};
+  const guardar = () => { try{ localStorage.setItem(CHAVE, JSON.stringify(est)); }catch(e){} };
+  const limpar = () => { est = { votos:{} }; guardar(); };
+  const banca = () => est.tipo === "banca";
+
+  let status = {};          // popular: status de cada pitch
+  let bancaAberta = true;
+  const cards = {};         // id -> { el, aval, fase, editando }
+  let abertoId = null;
+
+  // ================= ENTRADA =================
+  let etapa = "email";      // email | setor | codigo
+  const campoSetor = $("campoSetor");
+  if (C.SETORES && C.SETORES.length){
+    campoSetor.insertAdjacentHTML("beforeend", `<select id="setor"><option value="">Selecione</option>${C.SETORES.map(s => `<option>${esc(s)}</option>`).join("")}</select>`);
+  } else {
+    campoSetor.insertAdjacentHTML("beforeend", `<input id="setor" type="text" autocomplete="organization-title" maxlength="80" placeholder="Ex.: Marketing">`);
+  }
+  function irEtapa(e, msg){
+    etapa = e;
+    $("campoEmail").hidden = e !== "email"; $("emailFixo").hidden = e === "email";
+    $("emailFixoTxt").textContent = $("email").value.trim().toLowerCase();
+    $("campoSetor").hidden = e !== "setor"; $("campoCodigo").hidden = e !== "codigo";
+    $("btnEntrar").textContent = e === "email" ? "Continuar" : e === "setor" ? "Começar a votar" : "Entrar como banca";
+    $("tituloEntrada").textContent = e === "codigo" ? "Acesso da banca" : "Identifique-se para votar";
+    $("textoEntrada").textContent = e === "codigo" ? "Este e-mail está cadastrado na banca avaliadora. Digite o seu código para continuar."
+      : "Você vai avaliar cada pitch em 3 critérios: Inovar, Conectar e Transformar.";
+    $("notaEntrada").hidden = e === "codigo";
+    $("erroEntrada").textContent = msg || "";
+    const foco = e === "email" ? $("email") : e === "setor" ? $("setor") : $("codigo");
+    setTimeout(() => foco.focus(), 50);
+  }
+  function mostrarEntrada(msg){
+    $("telaVoto").hidden = true; $("telaEntrada").hidden = false;
+    $("email").value = est.email || ""; $("setor").value = ""; $("codigo").value = "";
+    irEtapa("email", msg);
+  }
+  $("trocarEmail").onclick = () => irEtapa("email");
+  $("formEntrada").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const email = $("email").value.trim().toLowerCase();
+    const btn = $("btnEntrar"), txt = btn.textContent;
+    const falhar = (m, campo) => { $("erroEntrada").textContent = m; if (campo) campo.focus(); };
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return falhar(mensagem({ codigo:"email_invalido" }), $("email"));
+    btn.disabled = true; btn.textContent = "Aguarde…"; $("erroEntrada").textContent = "";
+    try{
+      const cfg = await lerConfig().catch(() => null);
+      if (etapa === "email"){
+        const r = await api("identificar", { p_email:email });
+        if (r.tipo === "banca") entrarBanca(await api("banca_entrar_email", { p_email:email }), cfg);
+        else irEtapa("setor");
+      } else if (etapa === "setor"){
+        const setor = $("setor").value.trim();
+        if (setor.length < 2) return falhar(mensagem({ codigo:"setor_invalido" }), $("setor"));
+        const r = await api("votante_entrar", { p_email:email, p_setor:setor });
+        est = { tipo:"popular", email:r.email, setor:r.setor, rodada:cfg ? cfg.rodada : null, votos:{} };
+        (r.votados || []).forEach(id => est.votos[id] = true);
+        guardar(); await mostrarVoto();
+      } else {
+        const cod = $("codigo").value.trim().toUpperCase();
+        if (cod.length < 4) return falhar(mensagem({ codigo:"codigo_invalido" }), $("codigo"));
+        const r = await api("banca_entrar_email", { p_email:email, p_codigo:cod });
+        entrarBanca(r, cfg);
+      }
+    }catch(e){
+      if (e.codigo === "email_banca"){ try{ entrarBanca(await api("banca_entrar_email", { p_email:email }), null); }catch(e2){ falhar(mensagem(e2)); } }
+      else falhar(mensagem(e));
+    }finally{ btn.disabled = false; if (btn.textContent === "Aguarde…") btn.textContent = txt; }
+  });
+  function entrarBanca(r, cfg){
+    est = { tipo:"banca", email:r.email, nome:r.nome, codigo:r.codigo, rodada:cfg ? cfg.rodada : null, impedidos:r.impedidos || [], votos:{} };
+    Object.entries(r.votos || {}).forEach(([k, v]) => est.votos[k] = v);
+    bancaAberta = r.aberta !== false;
+    guardar(); mostrarVoto();
+  }
+  $("sair").addEventListener("click", () => { if (!confirm("Sair deste e-mail neste celular?")) return; limpar(); mostrarEntrada(); });
+
+  // ================= VOTAÇÃO =================
+  $("pergunta").textContent = C.PERGUNTA;
+  $("rotMin").textContent = C.ROTULO_MIN; $("rotMax").textContent = C.ROTULO_MAX;
+
+  const impedido = (id) => banca() && (est.impedidos || []).includes(id);
+  const votado = (id) => est.votos[id] !== undefined;
+  const disponivel = (id) => banca() ? !impedido(id) && bancaAberta : status[id] === "aberta";
+  const pendente = (id) => !votado(id) && disponivel(id);
+
+  async function mostrarVoto(){
+    $("telaEntrada").hidden = true; $("telaVoto").hidden = false;
+    $("quemEmail").textContent = banca() ? (est.nome || est.email) : est.email;
+    $("quemRotulo").textContent = banca() ? "Banca" : "Votando como";
+    $("eyebrowVoto").textContent = (banca() ? "Banca avaliadora" : "Votação popular") + (DEMO ? " (demonstração)" : "");
+    $("tagBanca").hidden = !banca();
+    $("progDica").textContent = banca() ? "Você pode alterar suas notas" : "Liberado após cada apresentação";
+    if (!banca()){ try{ status = await lerStatus(); }catch(e){} }
+    const lista = $("lista"); lista.innerHTML = "";
+    C.PITCHES.forEach((p, idx) => {
+      const li = document.createElement("li");
+      li.className = "pitch"; li.dataset.id = p.id;
+      li.innerHTML = `<button type="button" class="pitch-cab" aria-expanded="false" aria-controls="corpo-${p.id}">
+          <span class="num">${dois(idx + 1)}</span><span><span class="titulo">${esc(p.titulo)}</span><span class="selo"></span></span>${SETA}</button>
+        <div class="pitch-corpo" id="corpo-${p.id}" hidden><p class="msg-pitch" hidden></p><div class="aval"></div><div class="acao"></div></div>`;
+      lista.appendChild(li);
+      const card = { el:li, fase:"avaliando", editando:false };
+      card.aval = criarAvaliacao(li.querySelector(".aval"), { onChange:() => renderAcao(p.id) });
+      if (banca() && Array.isArray(est.votos[p.id])) card.aval.definir(est.votos[p.id]);
+      cards[p.id] = card;
+      li.querySelector(".pitch-cab").addEventListener("click", () => abrir(abertoId === p.id ? null : p.id, true));
+    });
+    renderTudo();
+    abrir(C.PITCHES.map(p => p.id).find(pendente) ?? null, false);
+  }
+  function renderTudo(){ C.PITCHES.forEach(p => renderCard(p.id)); atualizarProgresso(); }
+  function abrir(id, rolar){
+    abertoId = id;
+    C.PITCHES.forEach(p => {
+      const c = cards[p.id], on = p.id === id;
+      c.el.classList.toggle("aberto", on);
+      c.el.querySelector(".pitch-cab").setAttribute("aria-expanded", String(on));
+      c.el.querySelector(".pitch-corpo").hidden = !on;
+    });
+    if (id != null && rolar) requestAnimationFrame(() => cards[id].el.scrollIntoView({ behavior:"smooth", block:"start" }));
+  }
+  function renderCard(id){
+    const c = cards[id], v = votado(id), el = c.el;
+    const selo = el.querySelector(".selo"), msg = el.querySelector(".msg-pitch");
+    let textoSelo = "", textoMsg = "", alerta = false, mostraAval = false;
+    if (banca()){
+      if (impedido(id)){ textoSelo = "Você não avalia este pitch"; textoMsg = "Por conflito de interesse, este pitch não entra na sua avaliação."; }
+      else if (v && !c.editando){ textoSelo = `Avaliado · média ${fmt(media3(est.votos[id]))}`; }
+      else { textoSelo = "Avaliar 3 critérios"; mostraAval = true; }
+    } else {
+      const st = status[id];
+      if (v){ c.fase = "votado"; textoSelo = "Voto registrado"; }
+      else if (st === "aberta"){ textoSelo = "Votação liberada"; mostraAval = true; }
+      else if (st === "encerrada"){ textoSelo = "Votação encerrada"; textoMsg = "A votação deste pitch foi encerrada."; alerta = true; }
+      else { textoSelo = "Aguardando liberação"; textoMsg = "Este pitch ainda não foi liberado. A votação abre após a apresentação."; }
+    }
+    el.classList.toggle("votado", v && !c.editando && !impedido(id));
+    el.classList.toggle("bloqueado", !v && !mostraAval);
+    el.classList.toggle("liberado", !banca() && !v && status[id] === "aberta");
+    selo.textContent = textoSelo; selo.classList.toggle("alerta", alerta);
+    msg.textContent = textoMsg; msg.hidden = !textoMsg;
+    el.querySelector(".aval").hidden = !mostraAval;
+    if (!mostraAval && !v) el.querySelector(".acao").innerHTML = "";
+    else renderAcao(id);
+  }
+
+  function renderAcao(id, animar){
+    const c = cards[id], acao = c.el.querySelector(".acao");
+    const vals = c.aval.valores(), n = vals.filter(x => x != null).length;
+    // ----- banca: salva e pode alterar -----
+    if (banca()){
+      if (votado(id) && !c.editando){
+        const v = est.votos[id];
+        acao.innerHTML = `<div class="ok ${animar ? "anima" : ""}">${CHECK}Avaliação salva</div>
+          <div class="resumo">${CRIT.map((k, i) => `<div>${esc(k.nome)}<b>${v[i]}</b></div>`).join("")}<div class="med">Média<b>${fmt(media3(v))}</b></div></div>
+          ${bancaAberta ? '<button class="btn sec" data-a="editar">Alterar notas</button>' : ""}`;
+        const e = acao.querySelector('[data-a="editar"]');
+        if (e) e.onclick = () => { c.editando = true; c.aval.definir(est.votos[id]); renderCard(id); };
+        return;
+      }
+      c.aval.travar(c.fase === "enviando");
+      acao.innerHTML = (c.fase === "enviando" ? '<button class="btn" disabled>Salvando…</button>'
+        : n < 3 ? `<button class="btn" disabled>Avalie os 3 critérios (${n}/3)</button>`
+        : `<button class="btn" data-a="salvar">Salvar avaliação · média ${fmt(media3(vals))}</button>`)
+        + (c.editando ? '<button class="btn sec" data-a="cancelar">Cancelar alteração</button>' : "") + '<p class="status erro" role="alert"></p>';
+      const s = acao.querySelector('[data-a="salvar"]'); if (s) s.onclick = () => enviar(id);
+      const x = acao.querySelector('[data-a="cancelar"]'); if (x) x.onclick = () => { c.editando = false; c.aval.definir(est.votos[id]); renderCard(id); };
+      return;
+    }
+    // ----- popular: confirma e trava -----
+    if (c.fase === "votado"){
+      const v = Array.isArray(est.votos[id]) ? est.votos[id] : null;
+      acao.innerHTML = `<div class="ok ${animar ? "anima" : ""}">${CHECK}Voto registrado</div>` + (v ? `<div class="resumo">
+        ${CRIT.map((k, i) => `<div>${esc(k.nome)}<b>${v[i]}</b></div>`).join("")}<div class="med">Média<b>${fmt(media3(v))}</b></div></div>` : "");
+      return;
+    }
+    if (c.fase === "confirmando"){
+      c.aval.travar(true);
+      acao.innerHTML = `<div class="confirma">
+        <p><strong>Confirmar voto?</strong> ${CRIT.map((k, i) => `${esc(k.nome)} ${vals[i]}`).join(" · ")} · média ${fmt(media3(vals))}.<br>Depois de confirmado, não dá para alterar.</p>
+        <div class="duas"><button class="btn sec" data-a="revisar">Revisar</button><button class="btn" data-a="confirmar">Confirmar</button></div></div>
+        <p class="status erro" role="alert"></p>`;
+      acao.querySelector('[data-a="revisar"]').onclick = () => { c.fase = "avaliando"; c.aval.travar(false); renderAcao(id); };
+      acao.querySelector('[data-a="confirmar"]').onclick = () => enviar(id);
+      return;
+    }
+    if (c.fase === "enviando"){ acao.innerHTML = '<button class="btn" disabled>Enviando…</button>'; return; }
+    c.aval.travar(false);
+    acao.innerHTML = (n < 3 ? `<button class="btn" disabled>Avalie os 3 critérios (${n}/3)</button>` : `<button class="btn" data-a="votar">Votar · média ${fmt(media3(vals))}</button>`)
+      + '<p class="status erro" role="alert"></p>';
+    const b = acao.querySelector('[data-a="votar"]');
+    if (b) b.onclick = () => { c.fase = "confirmando"; renderAcao(id); };
+  }
+
+  async function enviar(id){
+    const c = cards[id], vals = c.aval.valores(), eraEdicao = c.editando;
+    c.fase = "enviando"; renderAcao(id);
+    try{
+      if (banca()) await api("votar_banca", { p_codigo:est.codigo, p_pitch:id, p_inovar:vals[0], p_conectar:vals[1], p_transformar:vals[2] });
+      else await api("votar_popular", { p_email:est.email, p_pitch:id, p_inovar:vals[0], p_conectar:vals[1], p_transformar:vals[2] });
+    }catch(e){
+      c.fase = banca() ? "avaliando" : "confirmando";
+      if (e.codigo === "ja_votou"){ est.votos[id] = true; guardar(); renderCard(id); atualizarProgresso(); return; }
+      if (e.codigo === "pitch_fechado"){ c.fase = "avaliando"; await atualizarStatus(); return; }
+      if (e.codigo === "impedido"){ est.impedidos = [...new Set([...(est.impedidos || []), id])]; guardar(); renderTudo(); return; }
+      if (e.codigo === "banca_encerrada"){ bancaAberta = false; aviso("A avaliação da banca foi encerrada."); renderTudo(); return; }
+      if (e.codigo === "votante_desconhecido" || e.codigo === "codigo_invalido"){ limpar(); mostrarEntrada(mensagem(e)); return; }
+      renderAcao(id); c.el.querySelector(".status").textContent = mensagem(e) + (banca() ? "" : " Toque em Confirmar de novo.");
+      return;
+    }
+    est.votos[id] = vals; c.editando = false; c.fase = banca() ? "avaliando" : "votado"; guardar();
+    if (navigator.vibrate) navigator.vibrate([12, 40, 12]);
+    renderCard(id); renderAcao(id, true); atualizarProgresso();
+    if (!eraEdicao) setTimeout(() => {
+      const ids = C.PITCHES.map(p => p.id), i = ids.indexOf(id);
+      const prox = [...ids.slice(i + 1), ...ids.slice(0, i)].find(pendente) ?? null;
+      abrir(prox, prox != null);
+    }, 900);
+  }
+
+  function atualizarProgresso(){
+    const alvo = C.PITCHES.filter(p => !impedido(p.id));
+    const feitos = alvo.filter(p => votado(p.id)).length, total = alvo.length;
+    $("progTxt").innerHTML = `<em>${dois(feitos)}</em>/${dois(total)} ${banca() ? "avaliados" : "votados"}`;
+    $("progBarra").style.width = (total ? feitos / total * 100 : 0) + "%";
+    const rod = $("rodape");
+    if (feitos === total){ rod.textContent = banca() ? "Todos os pitches avaliados. Obrigado!" : "Você votou em todos os pitches. Obrigado!"; rod.className = "rodape fim"; }
+    else { rod.textContent = banca() ? "Suas notas ficam salvas e podem ser alteradas." : "Fique de olho: cada pitch é liberado para votação depois da apresentação."; rod.className = "rodape"; }
+  }
+  function aviso(t){ const a = $("aviso"); a.textContent = t; a.hidden = !t; }
+
+  // ================= SINCRONIZAÇÃO =================
+  async function atualizarStatus(){
+    if (banca() || $("telaVoto").hidden) return;
+    let novo; try{ novo = await lerStatus(); }catch(e){ return; }
+    const abriuAgora = C.PITCHES.map(p => p.id).filter(id => novo[id] === "aberta" && status[id] !== "aberta" && !votado(id));
+    const mudou = C.PITCHES.some(p => novo[p.id] !== status[p.id]);
+    status = novo;
+    if (!mudou) return;
+    C.PITCHES.forEach(p => { const c = cards[p.id]; if (c && status[p.id] !== "aberta" && c.fase !== "votado"){ c.fase = "avaliando"; } });
+    renderTudo();
+    const emUso = abertoId != null && pendente(abertoId) && cards[abertoId].aval.valores().some(v => v != null);
+    if (abriuAgora.length && !emUso){ abrir(abriuAgora[0], true); if (navigator.vibrate) navigator.vibrate(30); }
+    else if (abertoId != null && !pendente(abertoId) && !votado(abertoId)) abrir(null, false);
+  }
+  async function sincronizar(){
+    try{
+      const cfg = await lerConfig();
+      if (cfg){
+        if (est.rodada != null && cfg.rodada !== est.rodada){ limpar(); mostrarEntrada(); return; }
+        est.rodada = cfg.rodada; guardar();
+      }
+      if (banca()){
+        const r = await api("banca_entrar", { p_codigo:est.codigo });
+        est.impedidos = r.impedidos || []; est.votos = {}; Object.entries(r.votos || {}).forEach(([k, v]) => est.votos[k] = v);
+        bancaAberta = r.aberta !== false; guardar();
+        if (!$("telaVoto").hidden){ C.PITCHES.forEach(p => { if (!cards[p.id].editando && Array.isArray(est.votos[p.id])) cards[p.id].aval.definir(est.votos[p.id]); }); renderTudo(); }
+      } else {
+        const r = await api("votante_entrar", { p_email:est.email, p_setor:est.setor });
+        const ids = new Set(r.votados || []);
+        Object.keys(est.votos).forEach(k => { if (!ids.has(+k)) delete est.votos[k]; });
+        ids.forEach(id => { if (est.votos[id] === undefined) est.votos[id] = true; });
+        guardar(); await atualizarStatus(); if (!$("telaVoto").hidden) renderTudo();
+      }
+    }catch(e){
+      if (["email_invalido", "email_dominio", "setor_invalido", "codigo_invalido", "email_banca"].includes(e.codigo)){ limpar(); mostrarEntrada(mensagem(e)); }
+    }
+  }
+
+  // ================= INÍCIO =================
+  const codLink = (new URLSearchParams(location.search).get("c") || "").trim().toUpperCase();
+  (async () => {
+    if (codLink){
+      history.replaceState(null, "", location.pathname + (DEMO ? "?demo" : ""));
+      try{ const cfg = await lerConfig().catch(() => null); entrarBanca(await api("banca_entrar", { p_codigo:codLink }), cfg); }
+      catch(e){ limpar(); mostrarEntrada(mensagem(e)); }
+    } else if (est.email){ await mostrarVoto(); sincronizar(); }
+    else mostrarEntrada();
+  })();
+  setInterval(() => { if (!document.hidden && est.email && !banca()) atualizarStatus(); }, STATUS_POLL);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && est.email) sincronizar(); });
+})();
+</script>
+</body>
+</html>

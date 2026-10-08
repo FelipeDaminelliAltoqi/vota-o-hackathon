@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Telão · Hackathon AltoQi</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/big-shoulders-display-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/base.css">
+<script src="config.js"></script>
+<script src="assets/comum.js"></script>
+<script src="assets/qrcode.js"></script>
+<style>
+html,body{height:100%}
+body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overflow-x:hidden}
+.tela{display:grid;grid-template-columns:minmax(0,1fr) clamp(280px,25vw,400px);gap:clamp(24px,3vw,56px);
+  max-width:1760px;margin:0 auto;padding:clamp(20px,2.6vw,48px);min-height:100%}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:clamp(14px,2vh,28px)}
+header .eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.ponto{width:10px;height:10px;border-radius:50%;background:var(--verde);box-shadow:0 0 0 0 rgba(37,206,123,.6);animation:pulso 2s infinite}
+.parado .ponto{background:var(--alerta);animation:none}
+.fechado .ponto{background:var(--erro);animation:none}
+@keyframes pulso{70%{box-shadow:0 0 0 10px rgba(37,206,123,0)}100%{box-shadow:0 0 0 0 rgba(37,206,123,0)}}
+h1{font-size:clamp(2.5rem,4.2vw,4.75rem)}
+.controles{display:flex;gap:8px;flex-wrap:wrap}
+
+ol{list-style:none;margin:0;padding:0;display:grid;gap:clamp(6px,.7vh,10px)}
+.item{display:grid;grid-template-columns:clamp(48px,4.4vw,84px) minmax(0,1fr) clamp(110px,10vw,190px);align-items:center;
+  gap:clamp(12px,1.6vw,28px);background:var(--superficie);border:1px solid var(--borda);border-radius:4px;
+  padding:clamp(6px,.75vh,14px) clamp(14px,1.6vw,28px);position:relative;overflow:hidden}
+.pos{font-family:var(--display);font-weight:900;font-size:clamp(2rem,3.2vw,3.4rem);line-height:.85;color:var(--apoio)}
+.nome{font-size:clamp(.95rem,1.2vw,1.35rem);font-weight:600;margin:0 0 8px;line-height:1.2}
+.trilho{height:clamp(8px,1vh,12px);background:var(--elevado)}
+.preench{height:100%;width:0;background:var(--verde);transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.valor{text-align:right;font-variant-numeric:tabular-nums}
+.valor strong{display:block;font-family:var(--display);font-weight:900;font-size:clamp(2rem,3.3vw,3.6rem);line-height:.85}
+.valor span{font-size:clamp(.7rem,.8vw,.875rem);color:var(--apoio)}
+.detalhe{font-size:clamp(.7rem,.85vw,.95rem);color:var(--apoio);margin:0}
+.detalhe b{color:var(--texto2);font-weight:600}
+
+/* anúncio */
+.item.oculto .nome,.item.oculto .detalhe,.item.oculto .valor{visibility:hidden}
+.item.oculto::after{content:"";position:absolute;left:calc(clamp(48px,4.4vw,84px) + clamp(12px,1.6vw,28px) + clamp(14px,1.6vw,28px));right:clamp(14px,1.6vw,28px);
+  top:50%;height:clamp(14px,2vh,22px);transform:translateY(-50%);border:1px dashed var(--borda);border-radius:2px}
+.item.revelado{animation:entra .6s cubic-bezier(.2,.8,.2,1)}
+@keyframes entra{0%{transform:translateX(-12px);opacity:.2}100%{transform:none;opacity:1}}
+.item.podio{border-color:var(--floresta)}
+.item.podio .pos,.item.podio .valor strong{color:var(--verde)}
+.item.campeao{background:var(--verde);border-color:var(--verde);color:var(--base)}
+.item.campeao .pos,.item.campeao .valor strong,.item.campeao .detalhe b{color:var(--base)}
+.item.campeao .detalhe,.item.campeao .valor span{color:#0B3D27}
+
+aside{display:flex;flex-direction:column;gap:clamp(16px,2vh,28px);position:sticky;top:clamp(20px,3vw,56px);align-self:start}
+.marca{width:100%;max-width:280px;height:auto;align-self:flex-end;margin-bottom:clamp(8px,2vh,28px)}
+.qr-area{position:relative;padding:clamp(18px,2vw,32px);margin-bottom:2vh}
+.diamante{position:absolute;inset:-6%;width:112%;height:112%;pointer-events:none}
+.qr-cartao{position:relative;background:#fff;color:var(--base);border-radius:4px;padding:clamp(14px,1.4vw,22px);text-align:center}
+.qr-cartao .eyebrow{color:var(--base);margin-bottom:12px}
+#qr svg{display:block;width:100%;height:auto}
+.qr-cartao small{display:block;margin-top:10px;font-size:.75rem;color:#555;word-break:break-all}
+.numeros{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--borda);border-radius:4px}
+.numeros div{padding:14px 18px}
+.numeros div+div{border-left:1px solid var(--borda)}
+.numeros strong{display:block;font-family:var(--display);font-weight:900;font-size:clamp(2.2rem,3.4vw,3.8rem);line-height:.9;font-variant-numeric:tabular-nums}
+.numeros span{font-size:.8125rem;color:var(--apoio)}
+.tag-st{display:inline-block;vertical-align:middle;margin-left:12px;font-size:clamp(.6rem,.7vw,.8rem);font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  padding:3px 10px;border-radius:999px;border:1px solid var(--borda);color:var(--apoio)}
+.item.st-aberta{border-color:var(--verde)}
+.item.st-aberta .pos{color:var(--verde)}
+.item.st-aberta .tag-st{border-color:var(--verde);color:var(--base);background:var(--verde)}
+.item.st-aguardando .nome{color:var(--apoio)}
+.regra{border-left:3px solid var(--verde);padding:4px 0 4px 14px;font-size:.875rem;color:var(--texto2);margin:0}
+.regra b{display:block;font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:1.5rem;color:var(--texto);line-height:1;margin-bottom:6px}
+.dica{font-size:.75rem;color:var(--apoio);margin:0}
+.dica kbd{font-family:inherit;border:1px solid var(--borda);border-radius:3px;padding:1px 6px;color:var(--texto2)}
+
+@media (min-width:901px){
+  .tela{height:100vh;height:100dvh;min-height:0}
+  main{display:flex;flex-direction:column;min-height:0}
+  ol{flex:1;min-height:0;grid-auto-rows:minmax(0,1fr)}
+  .item{padding-block:0;min-height:0}
+  h1{font-size:clamp(2.25rem,min(4.2vw,7.5vh),4.75rem)}
+  .pos{font-size:clamp(1.6rem,min(3.2vw,5.4vh),3.4rem)}
+  .valor strong{font-size:clamp(1.6rem,min(3.3vw,5.6vh),3.6rem)}
+  .nome{font-size:clamp(.85rem,min(1.2vw,2.1vh),1.35rem);margin-bottom:min(8px,.8vh)}
+  .qr-area{padding:clamp(12px,min(2vw,3vh),32px)}
+  .qr-cartao{max-width:min(100%,46vh);margin:0 auto}
+}
+@media (max-width:900px){ .tela{grid-template-columns:1fr} aside{position:static;order:-1} .qr-area,.marca,.dica{display:none} }
+@media (prefers-reduced-motion:reduce){ .preench{transition:none} .ponto,.item.revelado{animation:none} }
+</style>
+</head>
+<body>
+<div class="tela">
+  <main>
+    <header>
+      <div>
+        <p class="eyebrow" id="estado"><i class="ponto"></i><span>Conectando…</span></p>
+        <h1 class="display" id="titulo">Votação popular</h1>
+      </div>
+      <div class="controles" id="controles" hidden>
+        <button type="button" class="btn sec pequeno" id="bOcultar">Voltar</button>
+        <button type="button" class="btn sec pequeno" id="bTudo">Revelar tudo</button>
+        <button type="button" class="btn pequeno" id="bProx">Revelar próximo</button>
+      </div>
+    </header>
+    <ol id="lista"></ol>
+  </main>
+  <aside>
+    <img class="marca" src="assets/hackathon-wordmark.svg" alt="Hackathon AltoQi" width="280" height="70">
+    <div class="qr-area" id="qrArea">
+      <svg class="diamante" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <polygon points="50,0 100,50 50,100 0,50" fill="none" stroke="#FFFFFF" stroke-width=".4" stroke-dasharray="2 1.6" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <div class="qr-cartao">
+        <p class="eyebrow">Aponte a câmera e vote</p>
+        <div id="qr"></div>
+        <small id="qrUrl"></small>
+      </div>
+    </div>
+    <p class="regra" id="regra" hidden><b>Como sai a nota</b>Cada pitch recebe uma nota de 0 a 5 em Inovar, Conectar e Transformar. A nota final é a média entre a nota do voto popular (1 nota) e a nota de cada jurado.</p>
+    <div class="numeros">
+      <div><strong id="nPart">0</strong><span>pessoas votaram</span></div>
+      <div><strong id="nVotos">0</strong><span>votos registrados</span></div>
+    </div>
+    <p class="dica" id="dica" hidden>Teclado: <kbd>→</kbd> revela o próximo, <kbd>←</kbd> volta.</p>
+  </aside>
+</div>
+
+<script>
+(function(){
+  const { C, DEMO, dois, fmt, esc, api, ranking } = HQ;
+  const $ = (id) => document.getElementById(id);
+  const INTERVALO = 3000;
+
+  const urlVoto = C.URL_VOTACAO || new URL("./", location.href).href;
+  $("qrUrl").textContent = urlVoto.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  try{ const qr = qrcode(0, "M"); qr.addData(urlVoto); qr.make(); $("qr").innerHTML = qr.createSvgTag({ cellSize:8, margin:0, scalable:true }); }
+  catch(e){ $("qr").textContent = urlVoto; }
+
+  let modo = null, dados = null, revelados = 0, rodada = null;
+  const chaveRev = () => `hq-revelados:${DEMO ? "demo" : rodada}`;
+  const lista = $("lista");
+
+  function estado(tipo, txt){ const e = $("estado"); e.className = "eyebrow " + tipo; e.querySelector("span").textContent = txt; }
+
+  // ---------- modo 1: votação acontecendo (sem notas) ----------
+  function renderParticipacao(d){
+    if (modo !== "votacao"){
+      modo = "votacao"; lista.innerHTML = "";
+      $("titulo").textContent = "Votação popular"; $("controles").hidden = true; $("qrArea").hidden = false; $("regra").hidden = true; $("dica").hidden = true;
+      d.por_pitch.forEach(p => {
+        const li = document.createElement("li"); li.className = "item"; li.dataset.id = p.id;
+        li.innerHTML = `<span class="pos">${dois(p.ordem)}</span><div><p class="nome"><span class="t"></span><span class="tag-st"></span></p><div class="trilho"><div class="preench"></div></div></div>
+          <div class="valor"><strong>0</strong><span>votos</span></div>`;
+        li.querySelector(".t").textContent = p.titulo;
+        lista.appendChild(li);
+      });
+    }
+    const max = Math.max(1, d.votantes || 0, ...d.por_pitch.map(p => p.votos));
+    d.por_pitch.forEach(p => {
+      const li = lista.querySelector(`[data-id="${p.id}"]`); if (!li) return;
+      li.querySelector(".preench").style.width = (p.votos / max * 100) + "%";
+      li.querySelector(".valor strong").textContent = Number(p.votos).toLocaleString("pt-BR");
+      li.querySelector(".valor span").textContent = p.votos === 1 ? "voto" : "votos";
+      li.className = "item st-" + (p.status || "aguardando");
+      li.querySelector(".tag-st").textContent = { aberta:"Vote agora", encerrada:"Encerrada", aguardando:"Em breve" }[p.status] || "";
+    });
+    const abertos = d.por_pitch.filter(p => p.status === "aberta");
+    const todosEncerrados = d.por_pitch.every(p => p.status === "encerrada");
+    if (abertos.length) estado("", abertos.length === 1 ? `Votação aberta: ${abertos[0].titulo}` : `Votação aberta para ${abertos.length} pitches`);
+    else estado(todosEncerrados ? "fechado" : "parado", todosEncerrados ? "Votação encerrada · aguardando resultado" : "Aguardando a liberação do próximo pitch");
+  }
+
+  // ---------- modo 2: anúncio (revela do último para o primeiro) ----------
+  function renderAnuncio(d){
+    const rk = ranking(d.resultado);
+    if (modo !== "anuncio"){
+      modo = "anuncio";
+      try{ revelados = +sessionStorage.getItem(chaveRev()) || 0; }catch(e){ revelados = 0; }
+      $("titulo").textContent = "Resultado final"; $("controles").hidden = false; $("qrArea").hidden = true; $("regra").hidden = false; $("dica").hidden = false;
+    }
+    estado("", "Anúncio dos vencedores");
+    lista.innerHTML = "";
+    const total = rk.length;
+    rk.forEach((it, i) => {
+      const pos = i + 1, visivel = pos > total - revelados;
+      const li = document.createElement("li");
+      li.className = "item" + (visivel ? "" : " oculto") + (visivel && pos <= 3 ? " podio" : "") + (visivel && pos === 1 ? " campeao" : "");
+      li.innerHTML = `<span class="pos">${dois(pos)}º</span>
+        <div><p class="nome">${esc(it.titulo)}</p>
+          <p class="detalhe">Popular <b>${fmt(it.pop_media)}</b> (${it.pop_votos} votos) · Banca <b>${fmt(it.banca_media)}</b> (${it.banca_votos} ${it.banca_votos === 1 ? "jurado" : "jurados"})</p></div>
+        <div class="valor"><strong>${fmt(it.final)}</strong><span>nota final</span></div>`;
+      if (visivel && pos === total - revelados + 1 && ultimaAcao === "revelar") li.classList.add("revelado");
+      lista.appendChild(li);
+    });
+    $("bProx").disabled = revelados >= total; $("bTudo").disabled = revelados >= total; $("bOcultar").disabled = revelados <= 0;
+    $("bProx").textContent = revelados >= total ? "Tudo revelado" : `Revelar ${dois(total - revelados)}º`;
+  }
+  let ultimaAcao = null;
+  function revelar(delta){
+    if (modo !== "anuncio" || !dados) return;
+    const total = dados.resultado.length;
+    revelados = Math.max(0, Math.min(total, revelados + delta));
+    ultimaAcao = delta > 0 ? "revelar" : null;
+    try{ sessionStorage.setItem(chaveRev(), revelados); }catch(e){}
+    renderAnuncio(dados); ultimaAcao = null;
+  }
+  $("bProx").onclick = () => revelar(1);
+  $("bTudo").onclick = () => revelar(99);
+  $("bOcultar").onclick = () => revelar(-1);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown"){ e.preventDefault(); revelar(1); }
+    if (e.key === "ArrowLeft" || e.key === "PageUp"){ e.preventDefault(); revelar(-1); }
+  });
+
+  // ---------- ciclo ----------
+  let ocupado = false, okEm = 0;
+  async function ciclo(){
+    if (ocupado || document.hidden) return;
+    ocupado = true;
+    try{
+      const d = await api("painel_publico");
+      okEm = Date.now(); rodada = d.rodada;
+      $("nPart").textContent = Number(d.votantes).toLocaleString("pt-BR");
+      $("nVotos").textContent = Number(d.votos).toLocaleString("pt-BR");
+      const mudou = !dados || JSON.stringify(d.resultado) !== JSON.stringify(dados.resultado) || d.liberado !== dados.liberado;
+      dados = d;
+      if (d.liberado && d.resultado){ if (mudou || modo !== "anuncio") renderAnuncio(d); }
+      else renderParticipacao(d);
+    }catch(e){
+      const seg = okEm ? Math.round((Date.now() - okEm) / 1000) : null;
+      estado("parado", seg ? `Sem conexão, último dado há ${seg}s` : "Sem conexão com o banco");
+    }finally{ ocupado = false; }
+  }
+  ciclo(); setInterval(ciclo, INTERVALO);
+  document.addEventListener("visibilitychange", ciclo);
+})();
+</script>
+</body>
+</html>
