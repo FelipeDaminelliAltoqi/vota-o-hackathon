@@ -35,7 +35,6 @@ window.VOTACAO_CONFIG = {
     { id: 5, titulo: "Enriquecimento inteligente da base de contatos" },
     { id: 6, titulo: "Testes com IA em aplicações desktop e web" },
     { id: 7, titulo: "Gestão da carteira de clientes governamentais" },
-    { id: 8, titulo: "Fabricante 360 | Inteligência com IA" },
-    { id: 9, titulo: "Ferramenta Delivery para as nossas soluções" }
+    { id: 8, titulo: "Fabricante 360 | Inteligência com IA" }
   ]
 };
