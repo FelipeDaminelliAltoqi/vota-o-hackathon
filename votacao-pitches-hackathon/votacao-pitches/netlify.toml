@@ -1,0 +1,24 @@
+# Site 100% estático: sem build. A Netlify publica a raiz do repositório.
+[build]
+  publish = "."
+  command = ""
+
+# config.js e páginas sempre frescos (mudanças no dia aparecem na hora)
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/config.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+# /resultados (sem .html) também abre o telão
+[[redirects]]
+  from = "/resultados"
+  to = "/resultados.html"
+  status = 200

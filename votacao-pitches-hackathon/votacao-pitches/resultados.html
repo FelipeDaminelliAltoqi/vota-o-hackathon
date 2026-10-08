@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Resultado ao vivo · Hackathon AltoQi</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/big-shoulders-display-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts.css">
+<script src="config.js"></script>
+<script src="assets/qrcode.js"></script>
+<style>
+/* Tokens: Hackathon AltoQi — Design System Diamante (Figma) */
+:root{
+  --base:#0A0A0A; --superficie:#141414; --elevado:#1F1F1F; --borda:#2E2E2E;
+  --texto:#FFFFFF; --texto2:#C7C7C7; --apoio:#8A8A8A;
+  --verde:#25CE7B; --menta:#95E2C0; --floresta:#115134; --erro:#E5484D; --alerta:#F5A524;
+  --display:"Big Shoulders Display","Arial Narrow","Roboto Condensed",Impact,sans-serif;
+  --corpo:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--base);color:var(--texto);font-family:var(--corpo);line-height:1.4;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overflow-x:hidden}
+.eyebrow{font-weight:600;font-size:clamp(.75rem,.8vw,.95rem);letter-spacing:.18em;text-transform:uppercase;margin:0}
+
+.tela{display:grid;grid-template-columns:minmax(0,1fr) clamp(280px,25vw,400px);gap:clamp(24px,3vw,56px);
+  max-width:1760px;margin:0 auto;padding:clamp(20px,2.6vw,48px);min-height:100%}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:clamp(16px,2.2vh,32px)}
+header .eyebrow{color:var(--verde);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.ponto{width:10px;height:10px;border-radius:50%;background:var(--verde);box-shadow:0 0 0 0 rgba(37,206,123,.6);animation:pulso 2s infinite}
+.parado .ponto{background:var(--alerta);animation:none}
+.fechado .ponto{background:var(--erro);animation:none}
+@keyframes pulso{70%{box-shadow:0 0 0 10px rgba(37,206,123,0)}100%{box-shadow:0 0 0 0 rgba(37,206,123,0)}}
+h1{font-family:var(--display);font-weight:900;text-transform:uppercase;margin:0;line-height:.88;font-size:clamp(2.5rem,4.2vw,4.75rem)}
+.controles{display:flex;gap:8px;flex-wrap:wrap}
+.controles button{font:inherit;font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--texto2);
+  background:transparent;border:1px solid var(--borda);border-radius:4px;padding:9px 14px;cursor:pointer}
+.controles button:hover{border-color:var(--apoio);color:var(--texto)}
+.controles button[aria-pressed="true"]{background:var(--verde);border-color:var(--verde);color:var(--base)}
+.controles button:focus-visible{outline:2px solid var(--verde);outline-offset:2px}
+
+ol{list-style:none;margin:0;padding:0;display:grid;gap:clamp(6px,.7vh,10px)}
+.item{display:grid;grid-template-columns:clamp(48px,4.4vw,84px) minmax(0,1fr) clamp(96px,8.5vw,160px);
+  align-items:center;gap:clamp(12px,1.6vw,28px);background:var(--superficie);border:1px solid var(--borda);border-radius:4px;
+  padding:clamp(6px,.75vh,14px) clamp(14px,1.6vw,28px);will-change:transform}
+.item.topo{border-color:var(--floresta)}
+.item.lider{border-color:var(--verde)}
+.pos{font-family:var(--display);font-weight:900;font-size:clamp(2rem,3.2vw,3.4rem);line-height:.85;color:var(--apoio)}
+.item.topo .pos{color:var(--verde)}
+.nome{font-size:clamp(.95rem,1.2vw,1.35rem);font-weight:600;margin:0 0 8px;line-height:1.2}
+.trilho{height:clamp(8px,1vh,12px);background:var(--elevado)}
+.preench{height:100%;width:0;background:var(--apoio);transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.item.topo .preench{background:var(--verde)}
+.media{text-align:right;font-variant-numeric:tabular-nums}
+.media strong{display:block;font-family:var(--display);font-weight:900;font-size:clamp(2.2rem,3.3vw,3.6rem);line-height:.85}
+.item.topo .media strong{color:var(--verde)}
+.media span{font-size:clamp(.7rem,.8vw,.875rem);color:var(--apoio)}
+
+aside{display:flex;flex-direction:column;gap:clamp(16px,2vh,28px);position:sticky;top:clamp(20px,3vw,56px);align-self:start}
+.marca{width:100%;max-width:280px;height:auto;align-self:flex-end;margin-bottom:clamp(8px,2vh,28px)}
+.qr-area{position:relative;padding:clamp(18px,2vw,32px)}
+.diamante{position:absolute;inset:-6%;width:112%;height:112%;pointer-events:none}
+.qr-cartao{position:relative;background:#fff;color:var(--base);border-radius:4px;padding:clamp(14px,1.4vw,22px);text-align:center}
+.qr-cartao .eyebrow{color:var(--base);margin-bottom:12px}
+#qr svg{display:block;width:100%;height:auto}
+.qr-cartao small{display:block;margin-top:10px;font-size:.75rem;color:#555;word-break:break-all}
+.numeros{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--borda);border-radius:4px}
+.numeros div{padding:14px 18px}
+.numeros div+div{border-left:1px solid var(--borda)}
+.numeros strong{display:block;font-family:var(--display);font-weight:900;font-size:clamp(2.2rem,3.4vw,3.8rem);line-height:.9;font-variant-numeric:tabular-nums}
+.numeros span{font-size:.8125rem;color:var(--apoio)}
+.rodape-info{font-size:.8125rem;color:var(--apoio);margin:0}
+
+/* Telão: tudo cabe numa tela, qualquer resolução */
+@media (min-width:901px){
+  .tela{height:100vh;height:100dvh;min-height:0}
+  main{display:flex;flex-direction:column;min-height:0}
+  ol{flex:1;min-height:0;grid-auto-rows:minmax(0,1fr)}
+  .item{padding-block:0;min-height:0}
+  h1{font-size:clamp(2.25rem,min(4.2vw,7.5vh),4.75rem)}
+  .pos{font-size:clamp(1.6rem,min(3.2vw,5.4vh),3.4rem)}
+  .media strong{font-size:clamp(1.6rem,min(3.3vw,5.6vh),3.6rem)}
+  .nome{font-size:clamp(.85rem,min(1.2vw,2.1vh),1.35rem);margin-bottom:min(8px,.8vh)}
+  .media span{font-size:clamp(.65rem,min(.8vw,1.3vh),.875rem)}
+  aside{top:0;max-height:100%}
+  .qr-area{padding:clamp(12px,min(2vw,3vh),32px);margin-bottom:2vh}
+  .qr-cartao{max-width:min(100%,46vh);margin:0 auto}
+}
+@media (max-width:900px){
+  .tela{grid-template-columns:1fr}
+  aside{position:static;order:-1}
+  .qr-area,.marca{display:none}
+}
+@media (prefers-reduced-motion:reduce){ .preench{transition:none} .ponto{animation:none} }
+</style>
+</head>
+<body>
+<div class="tela">
+  <main>
+    <header>
+      <div>
+        <p class="eyebrow" id="estado"><i class="ponto"></i><span>Conectando…</span></p>
+        <h1>Ranking dos pitches</h1>
+      </div>
+      <div class="controles">
+        <button type="button" id="bRank" aria-pressed="true">Ranking</button>
+        <button type="button" id="bOrdem" aria-pressed="false">Ordem de apresentação</button>
+        <button type="button" id="bCsv">Baixar CSV</button>
+      </div>
+    </header>
+    <ol id="lista"></ol>
+  </main>
+  <aside>
+    <img class="marca" src="assets/hackathon-wordmark.svg" alt="Hackathon AltoQi" width="300" height="75">
+    <div class="qr-area">
+      <svg class="diamante" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <polygon points="50,0 100,50 50,100 0,50" fill="none" stroke="#FFFFFF" stroke-width=".4" stroke-dasharray="2 1.6" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <div class="qr-cartao">
+        <p class="eyebrow">Aponte a câmera e vote</p>
+        <div id="qr"></div>
+        <small id="qrUrl"></small>
+      </div>
+    </div>
+    <div class="numeros">
+      <div><strong id="nPart">0</strong><span>participantes</span></div>
+      <div><strong id="nVotos">0</strong><span>notas registradas</span></div>
+    </div>
+    <p class="rodape-info" id="rodapeInfo"></p>
+  </aside>
+</div>
+
+<script>
+(function(){
+  const C = window.VOTACAO_CONFIG;
+  const DEMO = new URLSearchParams(location.search).has("demo") || !C.SUPABASE_URL || C.SUPABASE_URL.includes("SEU-PROJETO");
+  const INTERVALO = 2000;
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n, d=2) => Number(n).toLocaleString("pt-BR", { minimumFractionDigits:d, maximumFractionDigits:d });
+  const dois = (n) => String(n).padStart(2, "0");
+
+  $("rodapeInfo").textContent = DEMO ? "Modo demonstração: dados simulados." : "Atualiza a cada 2 segundos.";
+
+  // QR code (gerado localmente, sem depender de CDN)
+  const urlVoto = C.URL_VOTACAO || new URL("./", location.href).href;
+  $("qrUrl").textContent = urlVoto.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  try{
+    const qr = qrcode(0, "M"); qr.addData(urlVoto); qr.make();
+    $("qr").innerHTML = qr.createSvgTag({ cellSize:8, margin:0, scalable:true });
+  }catch(e){ $("qr").textContent = urlVoto; }
+
+  // ---------- dados ----------
+  const demo = { itens: C.PITCHES.map((p,i) => ({ id:p.id, ordem:i+1, titulo:p.titulo, dist:[0,0,0,0,0,0], peso:Math.random() })), part:0 };
+  function painelDemo(){
+    const novos = Math.floor(Math.random()*4);
+    demo.part += novos;
+    demo.itens.forEach(it => { for (let k=0;k<novos;k++){ const n = Math.max(0, Math.min(5, Math.round(2 + it.peso*3 + (Math.random()-.5)*2.4))); it.dist[n]++; } });
+    const itens = demo.itens.map(it => { const v = it.dist.reduce((a,b)=>a+b,0); const s = it.dist.reduce((a,c,n)=>a+c*n,0);
+      return { id:it.id, ordem:it.ordem, titulo:it.titulo, votos:v, media: v ? +(s/v).toFixed(2) : null, dist:it.dist.slice() }; });
+    return { aberta:true, participantes:demo.part, total_votos:itens.reduce((a,b)=>a+b.votos,0), itens };
+  }
+  async function buscar(){
+    if (DEMO) return painelDemo();
+    const h = { "Content-Type":"application/json", apikey:C.SUPABASE_ANON_KEY };
+    if (C.SUPABASE_ANON_KEY.startsWith("eyJ")) h.Authorization = "Bearer " + C.SUPABASE_ANON_KEY;
+    const r = await fetch(`${C.SUPABASE_URL}/rest/v1/rpc/painel`, { method:"POST", headers:h, body:"{}", cache:"no-store" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }
+
+  // ---------- render com animação de troca de posição ----------
+  let modo = "rank", ultimo = null;
+  const lista = $("lista"), nos = new Map();
+  const reduz = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function ordenar(itens, m){
+    const a = itens.slice();
+    if (m === "ordem") return a.sort((x,y) => x.ordem - y.ordem);
+    return a.sort((x,y) => (y.media ?? -1) - (x.media ?? -1) || y.votos - x.votos || x.ordem - y.ordem);
+  }
+  function no(it){
+    let el = nos.get(it.id);
+    if (!el){
+      el = document.createElement("li"); el.className = "item";
+      el.innerHTML = `<span class="pos"></span><div><p class="nome"></p><div class="trilho"><div class="preench"></div></div></div>
+        <div class="media"><strong></strong><span></span></div>`;
+      el.querySelector(".nome").textContent = it.titulo;
+      nos.set(it.id, el);
+    }
+    return el;
+  }
+  function render(d){
+    ultimo = d;
+    $("nPart").textContent = Number(d.participantes).toLocaleString("pt-BR");
+    $("nVotos").textContent = Number(d.total_votos).toLocaleString("pt-BR");
+    const antes = new Map(); nos.forEach((el,id) => antes.set(id, el.getBoundingClientRect().top));
+    ordenar(d.itens, modo).forEach((it, i) => {
+      const el = no(it), destaque = modo === "rank" && it.votos > 0;
+      el.classList.toggle("topo", destaque && i < 3);
+      el.classList.toggle("lider", destaque && i === 0);
+      el.querySelector(".pos").textContent = dois(modo === "rank" ? i+1 : it.ordem);
+      el.querySelector(".preench").style.width = (it.media ? it.media/5*100 : 0) + "%";
+      el.querySelector(".media strong").textContent = it.media == null ? "–" : fmt(it.media);
+      el.querySelector(".media span").textContent = it.votos === 1 ? "1 voto" : `${Number(it.votos).toLocaleString("pt-BR")} votos`;
+      lista.appendChild(el);
+    });
+    if (reduz) return;
+    nos.forEach((el,id) => {                       // FLIP: desliza os itens que mudaram de posição
+      const de = antes.get(id); if (de === undefined) return;
+      const dy = de - el.getBoundingClientRect().top; if (!dy) return;
+      el.animate([{ transform:`translateY(${dy}px)` }, { transform:"none" }], { duration:600, easing:"cubic-bezier(.2,.8,.2,1)" });
+    });
+  }
+  function estado(tipo, txt){ const e = $("estado"); e.className = "eyebrow " + tipo; e.querySelector("span").textContent = txt; }
+
+  let ocupado = false, okEm = 0;
+  async function ciclo(){
+    if (ocupado || document.hidden) return;
+    ocupado = true;
+    try{
+      const d = await buscar(); render(d); okEm = Date.now();
+      if (d.aberta === false) estado("fechado", "Votação encerrada"); else estado("", "Resultado ao vivo");
+    }catch(e){
+      const seg = okEm ? Math.round((Date.now()-okEm)/1000) : null;
+      estado("parado", seg ? `Sem conexão, último dado há ${seg}s` : "Sem conexão com o banco");
+    }finally{ ocupado = false; }
+  }
+  ciclo(); setInterval(ciclo, INTERVALO);
+  document.addEventListener("visibilitychange", ciclo);
+
+  // ---------- controles ----------
+  function setModo(m){ modo = m; $("bRank").setAttribute("aria-pressed", m==="rank"); $("bOrdem").setAttribute("aria-pressed", m==="ordem"); if (ultimo) render(ultimo); }
+  $("bRank").onclick = () => setModo("rank");
+  $("bOrdem").onclick = () => setModo("ordem");
+  $("bCsv").onclick = () => {
+    if (!ultimo) return;
+    const linhas = [["posicao","pitch","media","votos","nota_0","nota_1","nota_2","nota_3","nota_4","nota_5"]];
+    ordenar(ultimo.itens, "rank").forEach((it,i) => linhas.push([i+1, `"${it.titulo.replace(/"/g,'""')}"`, it.media == null ? "" : String(it.media).replace(".",","), it.votos, ...it.dist]));
+    const csv = "\ufeff" + linhas.map(l => l.join(";")).join("\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type:"text/csv;charset=utf-8" }));
+    a.download = `resultado-pitches-${new Date().toISOString().slice(0,16).replace(/[:T]/g,"-")}.csv`;
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+})();
+</script>
+</body>
+</html>
