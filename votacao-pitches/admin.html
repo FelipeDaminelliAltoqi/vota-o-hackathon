@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel interno · Hackathon AltoQi</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/base.css">
+<script src="config.js"></script>
+<script src="assets/comum.js"></script>
+<style>
+body{font-size:.9375rem}
+.casca{max-width:1480px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top)) clamp(16px,2.5vw,40px) 64px}
+.barra-topo{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:20px;border-bottom:1px solid var(--borda)}
+.barra-topo .marca{display:flex;align-items:center;gap:16px}
+.barra-topo img{width:130px;height:auto}
+.barra-topo .marca span{font-family:var(--display);font-weight:800;font-size:1.5rem;text-transform:uppercase;color:var(--apoio)}
+.acoes{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.acoes label{font-size:.75rem;color:var(--apoio);display:flex;gap:6px;align-items:center;margin-right:6px}
+.atualizado{font-size:.75rem;color:var(--apoio)}
+
+h2{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:1.75rem;line-height:1;margin:0}
+.sec{margin-top:32px}
+.sec-cab{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.sec-cab p{margin:4px 0 0;font-size:.8125rem;color:var(--apoio)}
+.grade{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr))}
+.painel{background:var(--superficie);border:1px solid var(--borda);border-radius:4px;padding:20px}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));border:1px solid var(--borda);border-radius:4px;margin-top:24px}
+.kpis div{padding:16px 20px;border-right:1px solid var(--borda)}
+.kpis div:last-child{border-right:0}
+.kpis strong{display:block;font-family:var(--display);font-weight:900;font-size:2.75rem;line-height:.9;font-variant-numeric:tabular-nums}
+.kpis span{font-size:.8125rem;color:var(--apoio)}
+
+.controles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.ctrl{border:1px solid var(--borda);border-radius:4px;padding:14px;display:grid;gap:10px;align-content:start}
+.ctrl > span{font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--texto2)}
+.ctrl small{font-size:.75rem;color:var(--apoio);line-height:1.4}
+.chave{appearance:none;border:1px solid var(--borda);border-radius:4px;background:var(--elevado);color:var(--texto);font:inherit;font-weight:600;
+  min-height:44px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer}
+.chave::after{content:"";flex:none;width:36px;height:20px;border-radius:10px;background:var(--borda) radial-gradient(circle at 10px 50%, var(--texto2) 7px, transparent 8px) no-repeat}
+.chave[aria-pressed="true"]{border-color:var(--verde)}
+.chave[aria-pressed="true"]::after{background:var(--verde) radial-gradient(circle at 26px 50%, var(--base) 7px, transparent 8px) no-repeat}
+.chave:disabled{opacity:.5;cursor:wait}
+.ctrl select,.ctrl input{min-width:0;width:100%;min-height:44px;border-radius:4px;border:1px solid var(--borda);background:var(--elevado);color:var(--texto);font:inherit;padding:0 10px}
+
+.tabela{overflow-x:auto;border:1px solid var(--borda);border-radius:4px;max-height:640px;overflow-y:auto}
+table{border-collapse:collapse;width:100%;font-size:.875rem;font-variant-numeric:tabular-nums}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--borda);white-space:nowrap}
+th{position:sticky;top:0;background:var(--elevado);font-size:.6875rem;letter-spacing:.08em;text-transform:uppercase;color:var(--texto2);font-weight:600;z-index:1}
+td.n,th.n{text-align:right}
+td.quebra{white-space:normal;min-width:220px}
+tr:hover td{background:rgba(255,255,255,.02)}
+.final{font-family:var(--display);font-weight:900;font-size:1.5rem}
+.top .final{color:var(--verde)}
+.posicao{font-family:var(--display);font-weight:900;font-size:1.5rem;color:var(--apoio)}
+.top .posicao{color:var(--verde)}
+.sub{color:var(--apoio);font-size:.75rem;display:block}
+.grupo{border-left:1px solid var(--borda)}
+
+.barras{display:grid;gap:10px}
+.barras div{display:grid;grid-template-columns:minmax(90px,160px) 1fr 70px;gap:12px;align-items:center;font-size:.875rem}
+.barras i{display:block;height:10px;background:var(--verde)}
+.barras em{font-style:normal;text-align:right;color:var(--texto2);font-variant-numeric:tabular-nums}
+.vazio{color:var(--apoio);font-size:.875rem;margin:0}
+
+.codigo{font-family:var(--display);font-weight:900;font-size:1.375rem;letter-spacing:.15em}
+.form-linha{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-top:14px}
+.form-linha input{min-height:44px;border-radius:4px;border:1px solid var(--borda);background:var(--elevado);color:var(--texto);font:inherit;padding:0 12px}
+.filtros{display:flex;gap:8px;flex-wrap:wrap}
+.filtros input,.filtros select{min-height:40px;border-radius:4px;border:1px solid var(--borda);background:var(--elevado);color:var(--texto);font:inherit;font-size:.875rem;padding:0 10px}
+.abas{display:flex;gap:4px;border-bottom:1px solid var(--borda);margin-bottom:14px}
+.abas button{appearance:none;background:none;border:0;border-bottom:2px solid transparent;color:var(--apoio);font:inherit;font-weight:600;padding:10px 14px;cursor:pointer;margin-bottom:-1px}
+.abas button[aria-selected="true"]{color:var(--texto);border-bottom-color:var(--verde)}
+.info{font-size:.75rem;color:var(--apoio);margin:8px 0 0}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--texto);color:var(--base);padding:12px 18px;border-radius:4px;font-weight:600;font-size:.875rem;z-index:20}
+.toast.erro{background:var(--erro);color:#fff}
+
+.login{max-width:420px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:24px}
+.login img{width:150px;margin-bottom:32px}
+.login h1{font-size:2.75rem;margin:8px 0 24px}
+.login .btn{width:100%}
+</style>
+</head>
+<body>
+
+<section class="login" id="telaLogin" hidden>
+  <img src="assets/hackathon-wordmark.svg" alt="Hackathon AltoQi" width="150" height="38">
+  <p class="eyebrow">Uso interno</p>
+  <h1 class="display">Painel da votação</h1>
+  <form id="formLogin" novalidate>
+    <div class="campo"><label for="lEmail">E-mail</label><input id="lEmail" type="email" autocomplete="username" required></div>
+    <div class="campo"><label for="lSenha">Senha</label><input id="lSenha" type="password" autocomplete="current-password" required></div>
+    <p class="erro-msg" id="erroLogin" role="alert"></p>
+    <button class="btn" type="submit" id="btnLogin">Entrar</button>
+  </form>
+</section>
+
+<div class="casca" id="telaPainel" hidden>
+  <div class="barra-topo">
+    <div class="marca"><img src="assets/hackathon-wordmark.svg" alt="Hackathon AltoQi" width="130" height="33"><span>Painel interno</span></div>
+    <div class="acoes">
+      <label><input type="checkbox" id="auto" checked> Atualizar a cada 10 s</label>
+      <span class="atualizado" id="atualizado"></span>
+      <button class="btn sec pequeno" id="bAtualizar">Atualizar</button>
+      <button class="btn pequeno" id="bXlsx">Baixar planilha completa</button>
+      <button class="btn sec pequeno" id="bSair">Sair</button>
+    </div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <section class="sec">
+    <div class="sec-cab"><div><h2>Controles do evento</h2><p>Valem na hora para todos os celulares e para o telão.</p></div></div>
+    <div class="controles">
+      <div class="ctrl"><span>Votação popular</span><button class="chave" id="cAberta" aria-pressed="false"></button><small>Encerrada: ninguém mais consegue votar.</small></div>
+      <div class="ctrl"><span>Avaliação da banca</span><button class="chave" id="cBanca" aria-pressed="false"></button><small>Encerrada: jurados não salvam nem alteram notas.</small></div>
+      <div class="ctrl"><span>Resultado no telão</span><button class="chave" id="cLiberado" aria-pressed="false"></button><small>Liberado: o telão entra no modo anúncio e as notas ficam públicas.</small></div>
+      <div class="ctrl"><span>Regra da nota final</span>
+        <select id="cModo">
+          <option value="popular_como_jurado">Popular conta como mais um jurado</option>
+          <option value="metade">50% popular + 50% banca</option>
+        </select>
+        <small id="explicaModo"></small></div>
+      <div class="ctrl"><span>Domínio de e-mail permitido</span>
+        <div class="form-linha" style="grid-template-columns:minmax(0,1fr) auto;margin:0"><input id="cDominio" placeholder="qualquer e-mail" aria-label="Domínio de e-mail"><button class="btn sec pequeno" id="bDominio">Salvar</button></div>
+        <small>Ex.: altoqi.com.br. Vazio aceita qualquer e-mail.</small></div>
+      <div class="ctrl"><span>Zerar tudo</span><button class="btn perigo pequeno" id="bReset">Zerar votação</button><small>Apaga votos populares, votantes e notas da banca. Jurados continuam cadastrados.</small></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-cab"><div><h2>Ranking</h2><p id="explicaRanking"></p></div><button class="btn sec pequeno" id="bCsvRanking">CSV do ranking</button></div>
+    <div class="tabela"><table id="tRanking"></table></div>
+  </section>
+
+  <div class="grade g2 sec">
+    <section class="painel">
+      <div class="sec-cab"><div><h2>Participação por setor</h2><p id="totSetor"></p></div></div>
+      <div class="barras" id="setores"></div>
+    </section>
+    <section class="painel">
+      <div class="sec-cab"><div><h2>Banca</h2><p>Envie a cada jurado o link com o código dele.</p></div></div>
+      <div class="tabela" style="max-height:none"><table id="tMembros"></table></div>
+      <form class="form-linha" id="formMembro" novalidate>
+        <input id="mNome" placeholder="Nome do jurado" aria-label="Nome do jurado" maxlength="80">
+        <input id="mEmail" placeholder="E-mail (opcional)" aria-label="E-mail do jurado" type="email">
+        <button class="btn pequeno" type="submit">Adicionar</button>
+      </form>
+    </section>
+  </div>
+
+  <section class="sec">
+    <div class="abas" role="tablist">
+      <button role="tab" aria-selected="true" data-aba="pop">Votos populares</button>
+      <button role="tab" aria-selected="false" data-aba="banca">Notas da banca</button>
+      <button role="tab" aria-selected="false" data-aba="pessoas">Votantes</button>
+    </div>
+    <div class="sec-cab">
+      <div class="filtros">
+        <input id="fBusca" type="search" placeholder="Buscar e-mail, setor, jurado ou pitch" size="34" aria-label="Buscar">
+        <select id="fPitch" aria-label="Filtrar pitch"><option value="">Todos os pitches</option></select>
+      </div>
+      <button class="btn sec pequeno" id="bCsvAba">CSV desta tabela</button>
+    </div>
+    <div class="tabela"><table id="tDados"></table></div>
+    <p class="info" id="infoDados"></p>
+  </section>
+</div>
+
+<script>
+(function(){
+  const { C, DEMO, CRIT, dois, fmt, esc, mensagem, api, login, renovar, ranking, csv, baixar, numBR, carimbo } = HQ;
+  const $ = (id) => document.getElementById(id);
+  const SKEY = DEMO ? "hq-admin:demo" : "hq-admin:v2";
+  const NOMES = CRIT.map(c => c.nome);
+  let sessao = (() => { try{ return JSON.parse(sessionStorage.getItem(SKEY)); }catch(e){ return null; } })();
+  let D = null, aba = "pop", timer = null;
+  const urlBase = new URL("./", location.href).href;
+
+  function toast(msg, erro){ const t = document.createElement("div"); t.className = "toast" + (erro ? " erro" : ""); t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
+  const salvarSessao = () => { try{ sessao ? sessionStorage.setItem(SKEY, JSON.stringify(sessao)) : sessionStorage.removeItem(SKEY); }catch(e){} };
+
+  // ---------------- login ----------------
+  function mostrarLogin(msg){ $("telaPainel").hidden = true; $("telaLogin").hidden = false; $("erroLogin").textContent = msg || ""; clearInterval(timer); }
+  $("formLogin").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const b = $("btnLogin"); b.disabled = true; b.textContent = "Entrando…"; $("erroLogin").textContent = "";
+    try{ sessao = await login($("lEmail").value.trim(), $("lSenha").value); salvarSessao(); await carregar(); iniciarPainel(); }
+    catch(e){ sessao = null; salvarSessao(); $("erroLogin").textContent = mensagem(e); }
+    finally{ b.disabled = false; b.textContent = "Entrar"; }
+  });
+  $("bSair").onclick = () => { sessao = null; salvarSessao(); mostrarLogin(); };
+
+  async function chamar(fn, body){
+    if (sessao && sessao.expires_at - Date.now() / 1000 < 60){ try{ sessao = await renovar(sessao.refresh_token); salvarSessao(); }catch(e){} }
+    try{ return await api(fn, body, sessao && sessao.access_token); }
+    catch(e){
+      if (e.codigo === "nao_autorizado" && sessao && sessao.refresh_token){
+        try{ sessao = await renovar(sessao.refresh_token); salvarSessao(); return await api(fn, body, sessao.access_token); }
+        catch(e2){ if (e2.codigo === "nao_autorizado" || e2.codigo === "login_invalido"){ sessao = null; salvarSessao(); mostrarLogin(mensagem(e2)); } throw e2; }
+      }
+      throw e;
+    }
+  }
+
+  // ---------------- carga e render ----------------
+  async function carregar(){
+    D = await chamar("admin_dados");
+    $("atualizado").textContent = "Atualizado às " + new Date().toLocaleTimeString("pt-BR");
+    render();
+  }
+  function iniciarPainel(){
+    $("telaLogin").hidden = true; $("telaPainel").hidden = false;
+    clearInterval(timer); timer = setInterval(() => { if ($("auto").checked && !document.hidden) carregar().catch(() => {}); }, 10000);
+  }
+  function render(){ renderKpis(); renderControles(); renderRanking(); renderSetores(); renderMembros(); renderDados(); }
+
+  function renderKpis(){
+    const membrosAtivos = D.membros.filter(m => m.ativo).length;
+    const notasBanca = D.votos_banca.filter(v => v.ativo).length;
+    const pessoas = D.votantes.filter(v => v.votos > 0).length;
+    const k = [
+      [pessoas, "pessoas votaram"], [D.votos_populares.length, "votos populares"],
+      [D.votantes.length, "identificados"], [`${notasBanca}/${membrosAtivos * C.PITCHES.length}`, "notas da banca"],
+      [membrosAtivos, "jurados ativos"]
+    ];
+    $("kpis").innerHTML = k.map(([v, t]) => `<div><strong>${typeof v === "number" ? v.toLocaleString("pt-BR") : v}</strong><span>${t}</span></div>`).join("");
+  }
+  function chave(el, on, txtOn, txtOff){ el.setAttribute("aria-pressed", String(on)); el.textContent = on ? txtOn : txtOff; }
+  function renderControles(){
+    const c = D.config;
+    chave($("cAberta"), c.aberta, "Aberta", "Encerrada");
+    chave($("cBanca"), c.banca_aberta, "Aberta", "Encerrada");
+    chave($("cLiberado"), c.resultado_liberado, "Liberado", "Oculto");
+    $("cModo").value = c.modo_final;
+    if (document.activeElement !== $("cDominio")) $("cDominio").value = c.dominio_email || "";
+    $("explicaModo").textContent = c.modo_final === "metade"
+      ? "Final = (nota popular + média da banca) ÷ 2."
+      : "Final = média entre a nota popular (1 voto) e a nota de cada jurado.";
+    $("explicaRanking").textContent = "Nota de cada voto = média de " + NOMES.join(", ") + ". " + $("explicaModo").textContent;
+  }
+  async function definir(body, botao){
+    if (botao) botao.disabled = true;
+    try{ await chamar("admin_definir", body); await carregar(); toast("Atualizado"); }
+    catch(e){ toast(mensagem(e), true); }
+    finally{ if (botao) botao.disabled = false; }
+  }
+  $("cAberta").onclick = (e) => definir({ p_aberta: !D.config.aberta }, e.currentTarget);
+  $("cBanca").onclick = (e) => definir({ p_banca_aberta: !D.config.banca_aberta }, e.currentTarget);
+  $("cLiberado").onclick = (e) => {
+    const vai = !D.config.resultado_liberado;
+    if (vai && !confirm("Liberar o resultado? O telão entra no modo anúncio e as notas ficam visíveis publicamente.")) return;
+    definir({ p_liberado: vai }, e.currentTarget);
+  };
+  $("cModo").onchange = (e) => definir({ p_modo: e.target.value });
+  $("bDominio").onclick = (e) => definir({ p_dominio: $("cDominio").value.trim() }, e.currentTarget);
+  $("bReset").onclick = async () => {
+    const t = prompt("Isso apaga TODOS os votos populares, votantes e notas da banca.\nDigite ZERAR para confirmar:");
+    if (t == null) return;
+    try{ await chamar("admin_resetar", { p_confirmacao: t.trim() }); await carregar(); toast("Votação zerada"); }
+    catch(e){ toast(mensagem(e), true); }
+  };
+
+  function renderRanking(){
+    const rk = ranking(D.resultado);
+    const crit = (pre, it) => CRIT.map(c => `<td class="n">${fmt(it[pre + "_" + c.chave])}</td>`).join("");
+    $("tRanking").innerHTML = `<thead><tr><th>#</th><th>Pitch</th>
+      <th class="n grupo">Popular</th>${NOMES.map(n => `<th class="n">${esc(n)}</th>`).join("")}
+      <th class="n grupo">Banca</th>${NOMES.map(n => `<th class="n">${esc(n)}</th>`).join("")}
+      <th class="n grupo">Final</th></tr></thead><tbody>` +
+      rk.map((it, i) => `<tr class="${i < 3 && it.final != null ? "top" : ""}"><td><span class="posicao">${dois(i + 1)}</span></td>
+        <td class="quebra">${esc(it.titulo)}</td>
+        <td class="n grupo"><b>${fmt(it.pop_media)}</b><span class="sub">${it.pop_votos} votos</span></td>${crit("pop", it)}
+        <td class="n grupo"><b>${fmt(it.banca_media)}</b><span class="sub">${it.banca_votos} jurados</span></td>${crit("banca", it)}
+        <td class="n grupo"><span class="final">${fmt(it.final)}</span></td></tr>`).join("") + "</tbody>";
+  }
+  function renderSetores(){
+    const cont = {}; D.votantes.filter(v => v.votos > 0).forEach(v => cont[v.setor] = (cont[v.setor] || 0) + 1);
+    const lst = Object.entries(cont).sort((a, b) => b[1] - a[1]); const tot = lst.reduce((a, x) => a + x[1], 0); const max = Math.max(1, ...lst.map(x => x[1]));
+    $("totSetor").textContent = tot ? `${tot} pessoas que votaram, por setor informado.` : "";
+    $("setores").innerHTML = lst.length ? lst.map(([s, n]) => `<div><span>${esc(s)}</span><i style="width:${n / max * 100}%"></i><em>${n} · ${Math.round(n / tot * 100)}%</em></div>`).join("")
+      : '<p class="vazio">Ninguém votou ainda.</p>';
+  }
+  function renderMembros(){
+    $("tMembros").innerHTML = `<thead><tr><th>Jurado</th><th>Código</th><th class="n">Notas</th><th>Status</th><th></th></tr></thead><tbody>` +
+      (D.membros.length ? D.membros.map(m => `<tr><td>${esc(m.nome)}${m.email ? `<span class="sub">${esc(m.email)}</span>` : ""}</td>
+        <td><span class="codigo">${esc(m.codigo)}</span></td><td class="n">${m.votos}/${C.PITCHES.length}</td>
+        <td><button class="btn sec pequeno" data-ativo="${m.id}">${m.ativo ? "Ativo" : "Inativo"}</button></td>
+        <td><button class="btn sec pequeno" data-link="${esc(m.codigo)}">Copiar link</button></td></tr>`).join("")
+      : '<tr><td colspan="5" class="apoio">Nenhum jurado cadastrado.</td></tr>') + "</tbody>";
+    $("tMembros").querySelectorAll("[data-ativo]").forEach(b => b.onclick = async () => {
+      const m = D.membros.find(x => x.id == b.dataset.ativo);
+      if (m.ativo && !confirm(`Desativar ${m.nome}? As notas dele deixam de contar no resultado (ficam guardadas).`)) return;
+      try{ await chamar("admin_membro_ativo", { p_id:m.id, p_ativo:!m.ativo }); await carregar(); }catch(e){ toast(mensagem(e), true); }
+    });
+    $("tMembros").querySelectorAll("[data-link]").forEach(b => b.onclick = async () => {
+      const url = `${urlBase}banca.html?c=${b.dataset.link}`;
+      try{ await navigator.clipboard.writeText(url); toast("Link copiado"); }catch(e){ prompt("Copie o link:", url); }
+    });
+  }
+  $("formMembro").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    try{
+      const r = await chamar("admin_add_membro", { p_nome:$("mNome").value.trim(), p_email:$("mEmail").value.trim() || null });
+      $("mNome").value = ""; $("mEmail").value = ""; await carregar(); toast(`Jurado criado · código ${r.codigo}`);
+    }catch(e){ toast(mensagem(e), true); }
+  });
+
+  // ---------------- tabelas detalhadas ----------------
+  C.PITCHES.forEach(p => $("fPitch").insertAdjacentHTML("beforeend", `<option value="${p.id}">${esc(p.titulo)}</option>`));
+  document.querySelectorAll(".abas button").forEach(b => b.onclick = () => {
+    aba = b.dataset.aba; document.querySelectorAll(".abas button").forEach(x => x.setAttribute("aria-selected", String(x === b)));
+    $("fPitch").hidden = aba === "pessoas"; renderDados();
+  });
+  $("fBusca").oninput = () => renderDados(); $("fPitch").onchange = () => renderDados();
+  const hora = (iso) => iso ? new Date(iso).toLocaleString("pt-BR", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit", second:"2-digit" }) : "";
+
+  function linhasAba(){
+    const q = $("fBusca").value.trim().toLowerCase(), pid = +$("fPitch").value || null;
+    const ok = (txt, p) => (!q || txt.toLowerCase().includes(q)) && (!pid || p === pid);
+    if (aba === "pop") return D.votos_populares.filter(v => ok(`${v.email} ${v.setor} ${v.pitch}`, v.pitch_id));
+    if (aba === "banca") return D.votos_banca.filter(v => ok(`${v.jurado} ${v.pitch}`, v.pitch_id));
+    return D.votantes.filter(v => ok(`${v.email} ${v.setor}`, null));
+  }
+  function renderDados(){
+    if (!D) return;
+    const linhas = linhasAba(), LIM = 400, vis = linhas.slice(0, LIM);
+    const notas = (v) => CRIT.map(c => `<td class="n">${v[c.chave]}</td>`).join("") + `<td class="n"><b>${fmt(v.media)}</b></td>`;
+    const cabN = NOMES.map(n => `<th class="n">${esc(n)}</th>`).join("") + '<th class="n">Média</th>';
+    let html = "";
+    if (aba === "pop"){
+      html = `<thead><tr><th>Quando</th><th>E-mail</th><th>Setor</th><th>Pitch</th>${cabN}<th></th></tr></thead><tbody>` +
+        vis.map(v => `<tr><td>${hora(v.criado_em)}</td><td>${esc(v.email)}</td><td>${esc(v.setor)}</td><td class="quebra">${esc(v.pitch)}</td>${notas(v)}
+          <td><button class="btn sec pequeno" data-del="${esc(v.email)}|${v.pitch_id}">Excluir</button></td></tr>`).join("");
+    } else if (aba === "banca"){
+      html = `<thead><tr><th>Atualizado</th><th>Jurado</th><th>Pitch</th>${cabN}</tr></thead><tbody>` +
+        vis.map(v => `<tr><td>${hora(v.atualizado_em)}</td><td>${esc(v.jurado)}${v.ativo ? "" : ' <span class="sub">inativo, não conta</span>'}</td><td class="quebra">${esc(v.pitch)}</td>${notas(v)}</tr>`).join("");
+    } else {
+      html = `<thead><tr><th>Identificado em</th><th>E-mail</th><th>Setor</th><th class="n">Votos</th></tr></thead><tbody>` +
+        vis.map(v => `<tr><td>${hora(v.criado_em)}</td><td>${esc(v.email)}</td><td>${esc(v.setor)}</td><td class="n">${v.votos}/${C.PITCHES.length}</td></tr>`).join("");
+    }
+    $("tDados").innerHTML = html + (vis.length ? "" : `<tr><td colspan="9" class="apoio">Nada por aqui ainda.</td></tr>`) + "</tbody>";
+    $("infoDados").textContent = linhas.length > LIM ? `Mostrando ${LIM} de ${linhas.length} linhas. O CSV e a planilha trazem tudo.` : `${linhas.length} linhas.`;
+    $("tDados").querySelectorAll("[data-del]").forEach(b => b.onclick = async () => {
+      const [email, pid] = b.dataset.del.split("|");
+      if (!confirm(`Excluir o voto de ${email} neste pitch? A pessoa poderá votar de novo nele.`)) return;
+      try{ await chamar("admin_excluir_voto", { p_email:email, p_pitch:+pid }); await carregar(); toast("Voto excluído"); }catch(e){ toast(mensagem(e), true); }
+    });
+  }
+
+  // ---------------- exportação ----------------
+  function tabelas(){
+    const rk = ranking(D.resultado);
+    return {
+      Ranking: [["posicao", "pitch", "popular_media", "popular_votos", ...CRIT.map(c => "popular_" + c.chave), "banca_media", "banca_jurados", ...CRIT.map(c => "banca_" + c.chave), "nota_final"],
+        ...rk.map((it, i) => [i + 1, it.titulo, it.pop_media, it.pop_votos, ...CRIT.map(c => it["pop_" + c.chave]), it.banca_media, it.banca_votos, ...CRIT.map(c => it["banca_" + c.chave]), it.final])],
+      "Votos populares": [["data_hora", "email", "setor", "pitch", ...CRIT.map(c => c.chave), "media"],
+        ...D.votos_populares.map(v => [hora(v.criado_em), v.email, v.setor, v.pitch, ...CRIT.map(c => v[c.chave]), v.media])],
+      "Notas da banca": [["atualizado", "jurado", "ativo", "pitch", ...CRIT.map(c => c.chave), "media"],
+        ...D.votos_banca.map(v => [hora(v.atualizado_em), v.jurado, v.ativo ? "sim" : "não", v.pitch, ...CRIT.map(c => v[c.chave]), v.media])],
+      Votantes: [["identificado_em", "email", "setor", "votos"], ...D.votantes.map(v => [hora(v.criado_em), v.email, v.setor, v.votos])],
+      Banca: [["nome", "email", "codigo", "ativo", "notas"], ...D.membros.map(m => [m.nome, m.email || "", m.codigo, m.ativo ? "sim" : "não", m.votos])]
+    };
+  }
+  const paraCsv = (t) => csv(t.map(l => l.map(c => typeof c === "number" ? numBR(c) : c)));
+  $("bCsvRanking").onclick = () => baixar(`ranking-${carimbo()}.csv`, paraCsv(tabelas().Ranking));
+  $("bCsvAba").onclick = () => {
+    const nome = { pop:"Votos populares", banca:"Notas da banca", pessoas:"Votantes" }[aba];
+    baixar(`${nome.toLowerCase().replace(/ /g, "-")}-${carimbo()}.csv`, paraCsv(tabelas()[nome]));
+  };
+  $("bXlsx").onclick = async () => {
+    const b = $("bXlsx"); b.disabled = true; b.textContent = "Gerando…";
+    try{
+      if (!window.XLSX) await new Promise((ok, falha) => { const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"; s.onload = ok; s.onerror = falha; document.head.appendChild(s); });
+      const wb = XLSX.utils.book_new();
+      Object.entries(tabelas()).forEach(([nome, linhas]) => XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(linhas), nome.slice(0, 31)));
+      XLSX.writeFile(wb, `hackathon-votacao-${carimbo()}.xlsx`);
+    }catch(e){
+      toast("Não deu para gerar o .xlsx. Baixando os CSVs.", true);
+      Object.entries(tabelas()).forEach(([nome, linhas]) => baixar(`${nome.toLowerCase().replace(/ /g, "-")}-${carimbo()}.csv`, paraCsv(linhas)));
+    }finally{ b.disabled = false; b.textContent = "Baixar planilha completa"; }
+  };
+
+  // ---------------- início ----------------
+  if (DEMO && !sessao){ sessao = { access_token:"demo", refresh_token:"demo", expires_at:Date.now() / 1000 + 36000, email:"demo" }; }
+  if (sessao) carregar().then(iniciarPainel).catch(e => { if (!$("telaLogin").hidden) return; mostrarLogin(e.codigo === "nao_autorizado" ? mensagem(e) : ""); });
+  else mostrarLogin();
+})();
+</script>
+</body>
+</html>
