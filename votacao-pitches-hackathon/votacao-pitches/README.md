@@ -1,41 +1,37 @@
-# Votação dos pitches · Hackathon AltoQi
+# Votação dos pitches · Hackathon AltoQi (v2)
 
-Site estático (sem build) + Supabase. Identidade: Design System Diamante do Hackathon (Figma).
+| Página | Endereço | Para quem |
+|---|---|---|
+| Votação popular | `/` | Público (QR code). Pede e-mail + setor; 1 voto por pitch, sem alteração |
+| Banca | `/banca` | Jurados, com código individual (link `banca.html?c=CODIGO`) |
+| Telão | `/resultados` | Público. Mostra participação; depois de liberado, faz o anúncio |
+| Painel interno | `/admin` | Organização (login). Controles, ranking completo, todos os votos, exportação |
 
-| Arquivo | O que é |
-|---|---|
-| `index.html` | Votação mobile (é o link do QR code) |
-| `resultados.html` | Telão: ranking ao vivo, QR code, participantes, exportar CSV |
-| `config.js` | Supabase, textos e lista dos 9 pitches |
-| `supabase/schema.sql` | Tabelas, segurança (RLS) e funções |
-| `netlify.toml` | Configuração do deploy |
-| `assets/` | Logo, favicon, fontes e gerador de QR (tudo local, sem CDN) |
+Teste qualquer página sem tocar no banco acrescentando `?demo` (ex.: `/admin?demo`).
 
-## 1. Banco (uma vez)
-Supabase > projeto `doiaflynbljzfvyftoxg` > SQL Editor > cole o conteúdo de `supabase/schema.sql` > Run.
+## Regra da nota
+- Cada voto (popular ou da banca) = média de Inovar, Conectar e Transformação.
+- Nota popular do pitch = média de todos os votos populares (vira uma nota só).
+- Nota final (padrão) = média entre a nota popular e a nota de cada jurado
+  (o público conta como mais um jurado). Alternativa no painel: 50% popular + 50% banca.
 
-## 2. GitHub (pelo navegador)
-1. github.com/new > crie o repositório (ex.: `votacao-pitches-hackathon`).
-2. Na página do repo: "uploading an existing file" > arraste o **conteúdo** desta pasta (incluindo `assets/` e `supabase/`) > Commit.
-
-## 3. Netlify
-Add new site > Import an existing project > GitHub > escolha o repo > Deploy (não precisa preencher build).
-Cada commit no GitHub publica sozinho.
-
-- Votação: `https://SEU-SITE.netlify.app/`
-- Telão: `https://SEU-SITE.netlify.app/resultados`
-
-## Testar sem mexer no banco
-Acrescente `?demo` na URL (ex.: `/resultados?demo`). Dados simulados, nada é gravado.
+## Instalação da v2
+1. **Supabase > SQL Editor:** rode `supabase/03-v2-regras-completas.sql`.
+2. **Admin:** Supabase > Authentication > Users > Add user (e-mail + senha, marque Auto Confirm).
+   Depois, no SQL Editor: `insert into admins (email) values ('seu.email@altoqi.com.br');`
+3. **Recomendado:** Authentication > Sign In / Providers > desative "Allow new users to sign up".
+4. **GitHub:** suba os arquivos desta pasta para `votacao-pitches-hackathon/votacao-pitches/`, substituindo os antigos.
+5. **Jurados:** em `/admin`, cadastre cada jurado e use "Copiar link" para mandar o acesso.
 
 ## No dia
-- Encerrar votação: `update votacao_config set aberta = false;`
-- Reabrir: `update votacao_config set aberta = true;`
-- Zerar testes antes do evento: `truncate votos;`
-- Abra o projeto Supabase na véspera (plano gratuito pausa após dias sem uso).
+1. Antes de abrir: em `/admin`, "Zerar votação" (apaga os testes).
+2. QR code no telão (`/resultados`) e nos slides.
+3. Ao final: encerre a votação popular e a banca no painel.
+4. Hora do anúncio: "Resultado no telão" → Liberado. No telão, `→` revela do 9º ao 1º.
+5. Baixe a planilha completa no painel.
 
-## Como funciona
-- Cada celular recebe um id anônimo. Uma nota por celular por pitch; tocar de novo altera.
-- Cada toque é salvo na hora, com retentativa se a rede oscilar.
-- O telão lê a função `painel()` a cada 2 s. Votos individuais não são expostos pela API.
-- Aba anônima ou outro navegador contam como outro votante (aceitável para evento interno).
+## Segurança
+- Votos, e-mails e códigos da banca não são acessíveis pela API pública; só pelas funções do banco.
+- O painel exige login de um e-mail cadastrado em `admins`.
+- As notas só aparecem no telão depois de "Liberado".
+- O e-mail não é verificado: dá para restringir ao domínio corporativo no painel.

@@ -4,64 +4,56 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>Resultado ao vivo · Hackathon AltoQi</title>
+<title>Telão · Hackathon AltoQi</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="assets/fonts/big-shoulders-display-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/base.css">
 <script src="config.js"></script>
+<script src="assets/comum.js"></script>
 <script src="assets/qrcode.js"></script>
 <style>
-/* Tokens: Hackathon AltoQi — Design System Diamante (Figma) */
-:root{
-  --base:#0A0A0A; --superficie:#141414; --elevado:#1F1F1F; --borda:#2E2E2E;
-  --texto:#FFFFFF; --texto2:#C7C7C7; --apoio:#8A8A8A;
-  --verde:#25CE7B; --menta:#95E2C0; --floresta:#115134; --erro:#E5484D; --alerta:#F5A524;
-  --display:"Big Shoulders Display","Arial Narrow","Roboto Condensed",Impact,sans-serif;
-  --corpo:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  color-scheme:dark;
-}
-*{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;background:var(--base);color:var(--texto);font-family:var(--corpo);line-height:1.4;
-  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overflow-x:hidden}
-.eyebrow{font-weight:600;font-size:clamp(.75rem,.8vw,.95rem);letter-spacing:.18em;text-transform:uppercase;margin:0}
-
+body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overflow-x:hidden}
 .tela{display:grid;grid-template-columns:minmax(0,1fr) clamp(280px,25vw,400px);gap:clamp(24px,3vw,56px);
   max-width:1760px;margin:0 auto;padding:clamp(20px,2.6vw,48px);min-height:100%}
-header{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:clamp(16px,2.2vh,32px)}
-header .eyebrow{color:var(--verde);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:clamp(14px,2vh,28px)}
+header .eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .ponto{width:10px;height:10px;border-radius:50%;background:var(--verde);box-shadow:0 0 0 0 rgba(37,206,123,.6);animation:pulso 2s infinite}
 .parado .ponto{background:var(--alerta);animation:none}
 .fechado .ponto{background:var(--erro);animation:none}
 @keyframes pulso{70%{box-shadow:0 0 0 10px rgba(37,206,123,0)}100%{box-shadow:0 0 0 0 rgba(37,206,123,0)}}
-h1{font-family:var(--display);font-weight:900;text-transform:uppercase;margin:0;line-height:.88;font-size:clamp(2.5rem,4.2vw,4.75rem)}
+h1{font-size:clamp(2.5rem,4.2vw,4.75rem)}
 .controles{display:flex;gap:8px;flex-wrap:wrap}
-.controles button{font:inherit;font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--texto2);
-  background:transparent;border:1px solid var(--borda);border-radius:4px;padding:9px 14px;cursor:pointer}
-.controles button:hover{border-color:var(--apoio);color:var(--texto)}
-.controles button[aria-pressed="true"]{background:var(--verde);border-color:var(--verde);color:var(--base)}
-.controles button:focus-visible{outline:2px solid var(--verde);outline-offset:2px}
 
 ol{list-style:none;margin:0;padding:0;display:grid;gap:clamp(6px,.7vh,10px)}
-.item{display:grid;grid-template-columns:clamp(48px,4.4vw,84px) minmax(0,1fr) clamp(96px,8.5vw,160px);
-  align-items:center;gap:clamp(12px,1.6vw,28px);background:var(--superficie);border:1px solid var(--borda);border-radius:4px;
-  padding:clamp(6px,.75vh,14px) clamp(14px,1.6vw,28px);will-change:transform}
-.item.topo{border-color:var(--floresta)}
-.item.lider{border-color:var(--verde)}
+.item{display:grid;grid-template-columns:clamp(48px,4.4vw,84px) minmax(0,1fr) clamp(110px,10vw,190px);align-items:center;
+  gap:clamp(12px,1.6vw,28px);background:var(--superficie);border:1px solid var(--borda);border-radius:4px;
+  padding:clamp(6px,.75vh,14px) clamp(14px,1.6vw,28px);position:relative;overflow:hidden}
 .pos{font-family:var(--display);font-weight:900;font-size:clamp(2rem,3.2vw,3.4rem);line-height:.85;color:var(--apoio)}
-.item.topo .pos{color:var(--verde)}
 .nome{font-size:clamp(.95rem,1.2vw,1.35rem);font-weight:600;margin:0 0 8px;line-height:1.2}
 .trilho{height:clamp(8px,1vh,12px);background:var(--elevado)}
-.preench{height:100%;width:0;background:var(--apoio);transition:width .8s cubic-bezier(.2,.8,.2,1)}
-.item.topo .preench{background:var(--verde)}
-.media{text-align:right;font-variant-numeric:tabular-nums}
-.media strong{display:block;font-family:var(--display);font-weight:900;font-size:clamp(2.2rem,3.3vw,3.6rem);line-height:.85}
-.item.topo .media strong{color:var(--verde)}
-.media span{font-size:clamp(.7rem,.8vw,.875rem);color:var(--apoio)}
+.preench{height:100%;width:0;background:var(--verde);transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.valor{text-align:right;font-variant-numeric:tabular-nums}
+.valor strong{display:block;font-family:var(--display);font-weight:900;font-size:clamp(2rem,3.3vw,3.6rem);line-height:.85}
+.valor span{font-size:clamp(.7rem,.8vw,.875rem);color:var(--apoio)}
+.detalhe{font-size:clamp(.7rem,.85vw,.95rem);color:var(--apoio);margin:0}
+.detalhe b{color:var(--texto2);font-weight:600}
+
+/* anúncio */
+.item.oculto .nome,.item.oculto .detalhe,.item.oculto .valor{visibility:hidden}
+.item.oculto::after{content:"";position:absolute;left:calc(clamp(48px,4.4vw,84px) + clamp(12px,1.6vw,28px) + clamp(14px,1.6vw,28px));right:clamp(14px,1.6vw,28px);
+  top:50%;height:clamp(14px,2vh,22px);transform:translateY(-50%);border:1px dashed var(--borda);border-radius:2px}
+.item.revelado{animation:entra .6s cubic-bezier(.2,.8,.2,1)}
+@keyframes entra{0%{transform:translateX(-12px);opacity:.2}100%{transform:none;opacity:1}}
+.item.podio{border-color:var(--floresta)}
+.item.podio .pos,.item.podio .valor strong{color:var(--verde)}
+.item.campeao{background:var(--verde);border-color:var(--verde);color:var(--base)}
+.item.campeao .pos,.item.campeao .valor strong,.item.campeao .detalhe b{color:var(--base)}
+.item.campeao .detalhe,.item.campeao .valor span{color:#0B3D27}
 
 aside{display:flex;flex-direction:column;gap:clamp(16px,2vh,28px);position:sticky;top:clamp(20px,3vw,56px);align-self:start}
 .marca{width:100%;max-width:280px;height:auto;align-self:flex-end;margin-bottom:clamp(8px,2vh,28px)}
-.qr-area{position:relative;padding:clamp(18px,2vw,32px)}
+.qr-area{position:relative;padding:clamp(18px,2vw,32px);margin-bottom:2vh}
 .diamante{position:absolute;inset:-6%;width:112%;height:112%;pointer-events:none}
 .qr-cartao{position:relative;background:#fff;color:var(--base);border-radius:4px;padding:clamp(14px,1.4vw,22px);text-align:center}
 .qr-cartao .eyebrow{color:var(--base);margin-bottom:12px}
@@ -72,9 +64,11 @@ aside{display:flex;flex-direction:column;gap:clamp(16px,2vh,28px);position:stick
 .numeros div+div{border-left:1px solid var(--borda)}
 .numeros strong{display:block;font-family:var(--display);font-weight:900;font-size:clamp(2.2rem,3.4vw,3.8rem);line-height:.9;font-variant-numeric:tabular-nums}
 .numeros span{font-size:.8125rem;color:var(--apoio)}
-.rodape-info{font-size:.8125rem;color:var(--apoio);margin:0}
+.regra{border-left:3px solid var(--verde);padding:4px 0 4px 14px;font-size:.875rem;color:var(--texto2);margin:0}
+.regra b{display:block;font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:1.5rem;color:var(--texto);line-height:1;margin-bottom:6px}
+.dica{font-size:.75rem;color:var(--apoio);margin:0}
+.dica kbd{font-family:inherit;border:1px solid var(--borda);border-radius:3px;padding:1px 6px;color:var(--texto2)}
 
-/* Telão: tudo cabe numa tela, qualquer resolução */
 @media (min-width:901px){
   .tela{height:100vh;height:100dvh;min-height:0}
   main{display:flex;flex-direction:column;min-height:0}
@@ -82,19 +76,13 @@ aside{display:flex;flex-direction:column;gap:clamp(16px,2vh,28px);position:stick
   .item{padding-block:0;min-height:0}
   h1{font-size:clamp(2.25rem,min(4.2vw,7.5vh),4.75rem)}
   .pos{font-size:clamp(1.6rem,min(3.2vw,5.4vh),3.4rem)}
-  .media strong{font-size:clamp(1.6rem,min(3.3vw,5.6vh),3.6rem)}
+  .valor strong{font-size:clamp(1.6rem,min(3.3vw,5.6vh),3.6rem)}
   .nome{font-size:clamp(.85rem,min(1.2vw,2.1vh),1.35rem);margin-bottom:min(8px,.8vh)}
-  .media span{font-size:clamp(.65rem,min(.8vw,1.3vh),.875rem)}
-  aside{top:0;max-height:100%}
-  .qr-area{padding:clamp(12px,min(2vw,3vh),32px);margin-bottom:2vh}
+  .qr-area{padding:clamp(12px,min(2vw,3vh),32px)}
   .qr-cartao{max-width:min(100%,46vh);margin:0 auto}
 }
-@media (max-width:900px){
-  .tela{grid-template-columns:1fr}
-  aside{position:static;order:-1}
-  .qr-area,.marca{display:none}
-}
-@media (prefers-reduced-motion:reduce){ .preench{transition:none} .ponto{animation:none} }
+@media (max-width:900px){ .tela{grid-template-columns:1fr} aside{position:static;order:-1} .qr-area,.marca,.dica{display:none} }
+@media (prefers-reduced-motion:reduce){ .preench{transition:none} .ponto,.item.revelado{animation:none} }
 </style>
 </head>
 <body>
@@ -103,19 +91,19 @@ aside{display:flex;flex-direction:column;gap:clamp(16px,2vh,28px);position:stick
     <header>
       <div>
         <p class="eyebrow" id="estado"><i class="ponto"></i><span>Conectando…</span></p>
-        <h1>Ranking dos pitches</h1>
+        <h1 class="display" id="titulo">Votação popular</h1>
       </div>
-      <div class="controles">
-        <button type="button" id="bRank" aria-pressed="true">Ranking</button>
-        <button type="button" id="bOrdem" aria-pressed="false">Ordem de apresentação</button>
-        <button type="button" id="bCsv">Baixar CSV</button>
+      <div class="controles" id="controles" hidden>
+        <button type="button" class="btn sec pequeno" id="bOcultar">Voltar</button>
+        <button type="button" class="btn sec pequeno" id="bTudo">Revelar tudo</button>
+        <button type="button" class="btn pequeno" id="bProx">Revelar próximo</button>
       </div>
     </header>
     <ol id="lista"></ol>
   </main>
   <aside>
-    <img class="marca" src="assets/hackathon-wordmark.svg" alt="Hackathon AltoQi" width="300" height="75">
-    <div class="qr-area">
+    <img class="marca" src="assets/hackathon-wordmark.svg" alt="Hackathon AltoQi" width="280" height="70">
+    <div class="qr-area" id="qrArea">
       <svg class="diamante" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         <polygon points="50,0 100,50 50,100 0,50" fill="none" stroke="#FFFFFF" stroke-width=".4" stroke-dasharray="2 1.6" vector-effect="non-scaling-stroke"/>
       </svg>
@@ -125,126 +113,117 @@ aside{display:flex;flex-direction:column;gap:clamp(16px,2vh,28px);position:stick
         <small id="qrUrl"></small>
       </div>
     </div>
+    <p class="regra" id="regra" hidden><b>Como sai a nota</b>Cada pitch recebe uma nota de 0 a 5 em Inovar, Conectar e Transformação. A nota final combina o voto popular com a avaliação da banca.</p>
     <div class="numeros">
-      <div><strong id="nPart">0</strong><span>participantes</span></div>
-      <div><strong id="nVotos">0</strong><span>notas registradas</span></div>
+      <div><strong id="nPart">0</strong><span>pessoas votaram</span></div>
+      <div><strong id="nVotos">0</strong><span>votos registrados</span></div>
     </div>
-    <p class="rodape-info" id="rodapeInfo"></p>
+    <p class="dica" id="dica" hidden>Teclado: <kbd>→</kbd> revela o próximo, <kbd>←</kbd> volta.</p>
   </aside>
 </div>
 
 <script>
 (function(){
-  const C = window.VOTACAO_CONFIG;
-  const DEMO = new URLSearchParams(location.search).has("demo") || !C.SUPABASE_URL || C.SUPABASE_URL.includes("SEU-PROJETO");
-  const INTERVALO = 2000;
+  const { C, DEMO, dois, fmt, esc, api, ranking } = HQ;
   const $ = (id) => document.getElementById(id);
-  const fmt = (n, d=2) => Number(n).toLocaleString("pt-BR", { minimumFractionDigits:d, maximumFractionDigits:d });
-  const dois = (n) => String(n).padStart(2, "0");
+  const INTERVALO = 3000;
 
-  $("rodapeInfo").textContent = DEMO ? "Modo demonstração: dados simulados." : "Atualiza a cada 2 segundos.";
-
-  // QR code (gerado localmente, sem depender de CDN)
   const urlVoto = C.URL_VOTACAO || new URL("./", location.href).href;
   $("qrUrl").textContent = urlVoto.replace(/^https?:\/\//, "").replace(/\/$/, "");
-  try{
-    const qr = qrcode(0, "M"); qr.addData(urlVoto); qr.make();
-    $("qr").innerHTML = qr.createSvgTag({ cellSize:8, margin:0, scalable:true });
-  }catch(e){ $("qr").textContent = urlVoto; }
+  try{ const qr = qrcode(0, "M"); qr.addData(urlVoto); qr.make(); $("qr").innerHTML = qr.createSvgTag({ cellSize:8, margin:0, scalable:true }); }
+  catch(e){ $("qr").textContent = urlVoto; }
 
-  // ---------- dados ----------
-  const demo = { itens: C.PITCHES.map((p,i) => ({ id:p.id, ordem:i+1, titulo:p.titulo, dist:[0,0,0,0,0,0], peso:Math.random() })), part:0 };
-  function painelDemo(){
-    const novos = Math.floor(Math.random()*4);
-    demo.part += novos;
-    demo.itens.forEach(it => { for (let k=0;k<novos;k++){ const n = Math.max(0, Math.min(5, Math.round(2 + it.peso*3 + (Math.random()-.5)*2.4))); it.dist[n]++; } });
-    const itens = demo.itens.map(it => { const v = it.dist.reduce((a,b)=>a+b,0); const s = it.dist.reduce((a,c,n)=>a+c*n,0);
-      return { id:it.id, ordem:it.ordem, titulo:it.titulo, votos:v, media: v ? +(s/v).toFixed(2) : null, dist:it.dist.slice() }; });
-    return { aberta:true, participantes:demo.part, total_votos:itens.reduce((a,b)=>a+b.votos,0), itens };
-  }
-  async function buscar(){
-    if (DEMO) return painelDemo();
-    const h = { "Content-Type":"application/json", apikey:C.SUPABASE_ANON_KEY };
-    if (C.SUPABASE_ANON_KEY.startsWith("eyJ")) h.Authorization = "Bearer " + C.SUPABASE_ANON_KEY;
-    const r = await fetch(`${C.SUPABASE_URL}/rest/v1/rpc/painel`, { method:"POST", headers:h, body:"{}", cache:"no-store" });
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    return r.json();
-  }
+  let modo = null, dados = null, revelados = 0, rodada = null;
+  const chaveRev = () => `hq-revelados:${DEMO ? "demo" : rodada}`;
+  const lista = $("lista");
 
-  // ---------- render com animação de troca de posição ----------
-  let modo = "rank", ultimo = null;
-  const lista = $("lista"), nos = new Map();
-  const reduz = matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  function ordenar(itens, m){
-    const a = itens.slice();
-    if (m === "ordem") return a.sort((x,y) => x.ordem - y.ordem);
-    return a.sort((x,y) => (y.media ?? -1) - (x.media ?? -1) || y.votos - x.votos || x.ordem - y.ordem);
-  }
-  function no(it){
-    let el = nos.get(it.id);
-    if (!el){
-      el = document.createElement("li"); el.className = "item";
-      el.innerHTML = `<span class="pos"></span><div><p class="nome"></p><div class="trilho"><div class="preench"></div></div></div>
-        <div class="media"><strong></strong><span></span></div>`;
-      el.querySelector(".nome").textContent = it.titulo;
-      nos.set(it.id, el);
-    }
-    return el;
-  }
-  function render(d){
-    ultimo = d;
-    $("nPart").textContent = Number(d.participantes).toLocaleString("pt-BR");
-    $("nVotos").textContent = Number(d.total_votos).toLocaleString("pt-BR");
-    const antes = new Map(); nos.forEach((el,id) => antes.set(id, el.getBoundingClientRect().top));
-    ordenar(d.itens, modo).forEach((it, i) => {
-      const el = no(it), destaque = modo === "rank" && it.votos > 0;
-      el.classList.toggle("topo", destaque && i < 3);
-      el.classList.toggle("lider", destaque && i === 0);
-      el.querySelector(".pos").textContent = dois(modo === "rank" ? i+1 : it.ordem);
-      el.querySelector(".preench").style.width = (it.media ? it.media/5*100 : 0) + "%";
-      el.querySelector(".media strong").textContent = it.media == null ? "–" : fmt(it.media);
-      el.querySelector(".media span").textContent = it.votos === 1 ? "1 voto" : `${Number(it.votos).toLocaleString("pt-BR")} votos`;
-      lista.appendChild(el);
-    });
-    if (reduz) return;
-    nos.forEach((el,id) => {                       // FLIP: desliza os itens que mudaram de posição
-      const de = antes.get(id); if (de === undefined) return;
-      const dy = de - el.getBoundingClientRect().top; if (!dy) return;
-      el.animate([{ transform:`translateY(${dy}px)` }, { transform:"none" }], { duration:600, easing:"cubic-bezier(.2,.8,.2,1)" });
-    });
-  }
   function estado(tipo, txt){ const e = $("estado"); e.className = "eyebrow " + tipo; e.querySelector("span").textContent = txt; }
 
+  // ---------- modo 1: votação acontecendo (sem notas) ----------
+  function renderParticipacao(d){
+    if (modo !== "votacao"){
+      modo = "votacao"; lista.innerHTML = "";
+      $("titulo").textContent = "Votação popular"; $("controles").hidden = true; $("qrArea").hidden = false; $("regra").hidden = true; $("dica").hidden = true;
+      d.por_pitch.forEach(p => {
+        const li = document.createElement("li"); li.className = "item"; li.dataset.id = p.id;
+        li.innerHTML = `<span class="pos">${dois(p.ordem)}</span><div><p class="nome">${esc(p.titulo)}</p><div class="trilho"><div class="preench"></div></div></div>
+          <div class="valor"><strong>0</strong><span>votos</span></div>`;
+        lista.appendChild(li);
+      });
+    }
+    const max = Math.max(1, d.votantes || 0, ...d.por_pitch.map(p => p.votos));
+    d.por_pitch.forEach(p => {
+      const li = lista.querySelector(`[data-id="${p.id}"]`); if (!li) return;
+      li.querySelector(".preench").style.width = (p.votos / max * 100) + "%";
+      li.querySelector(".valor strong").textContent = Number(p.votos).toLocaleString("pt-BR");
+      li.querySelector(".valor span").textContent = p.votos === 1 ? "voto" : "votos";
+    });
+    estado(d.aberta ? "" : "fechado", d.aberta ? "Votação aberta" : "Votação encerrada · aguardando resultado");
+  }
+
+  // ---------- modo 2: anúncio (revela do último para o primeiro) ----------
+  function renderAnuncio(d){
+    const rk = ranking(d.resultado);
+    if (modo !== "anuncio"){
+      modo = "anuncio";
+      try{ revelados = +sessionStorage.getItem(chaveRev()) || 0; }catch(e){ revelados = 0; }
+      $("titulo").textContent = "Resultado final"; $("controles").hidden = false; $("qrArea").hidden = true; $("regra").hidden = false; $("dica").hidden = false;
+    }
+    estado("", "Anúncio dos vencedores");
+    lista.innerHTML = "";
+    const total = rk.length;
+    rk.forEach((it, i) => {
+      const pos = i + 1, visivel = pos > total - revelados;
+      const li = document.createElement("li");
+      li.className = "item" + (visivel ? "" : " oculto") + (visivel && pos <= 3 ? " podio" : "") + (visivel && pos === 1 ? " campeao" : "");
+      li.innerHTML = `<span class="pos">${dois(pos)}º</span>
+        <div><p class="nome">${esc(it.titulo)}</p>
+          <p class="detalhe">Popular <b>${fmt(it.pop_media)}</b> (${it.pop_votos} votos) · Banca <b>${fmt(it.banca_media)}</b> (${it.banca_votos} ${it.banca_votos === 1 ? "jurado" : "jurados"})</p></div>
+        <div class="valor"><strong>${fmt(it.final)}</strong><span>nota final</span></div>`;
+      if (visivel && pos === total - revelados + 1 && ultimaAcao === "revelar") li.classList.add("revelado");
+      lista.appendChild(li);
+    });
+    $("bProx").disabled = revelados >= total; $("bTudo").disabled = revelados >= total; $("bOcultar").disabled = revelados <= 0;
+    $("bProx").textContent = revelados >= total ? "Tudo revelado" : `Revelar ${dois(total - revelados)}º`;
+  }
+  let ultimaAcao = null;
+  function revelar(delta){
+    if (modo !== "anuncio" || !dados) return;
+    const total = dados.resultado.length;
+    revelados = Math.max(0, Math.min(total, revelados + delta));
+    ultimaAcao = delta > 0 ? "revelar" : null;
+    try{ sessionStorage.setItem(chaveRev(), revelados); }catch(e){}
+    renderAnuncio(dados); ultimaAcao = null;
+  }
+  $("bProx").onclick = () => revelar(1);
+  $("bTudo").onclick = () => revelar(99);
+  $("bOcultar").onclick = () => revelar(-1);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown"){ e.preventDefault(); revelar(1); }
+    if (e.key === "ArrowLeft" || e.key === "PageUp"){ e.preventDefault(); revelar(-1); }
+  });
+
+  // ---------- ciclo ----------
   let ocupado = false, okEm = 0;
   async function ciclo(){
     if (ocupado || document.hidden) return;
     ocupado = true;
     try{
-      const d = await buscar(); render(d); okEm = Date.now();
-      if (d.aberta === false) estado("fechado", "Votação encerrada"); else estado("", "Resultado ao vivo");
+      const d = await api("painel_publico");
+      okEm = Date.now(); rodada = d.rodada;
+      $("nPart").textContent = Number(d.votantes).toLocaleString("pt-BR");
+      $("nVotos").textContent = Number(d.votos).toLocaleString("pt-BR");
+      const mudou = !dados || JSON.stringify(d.resultado) !== JSON.stringify(dados.resultado) || d.liberado !== dados.liberado;
+      dados = d;
+      if (d.liberado && d.resultado){ if (mudou || modo !== "anuncio") renderAnuncio(d); }
+      else renderParticipacao(d);
     }catch(e){
-      const seg = okEm ? Math.round((Date.now()-okEm)/1000) : null;
+      const seg = okEm ? Math.round((Date.now() - okEm) / 1000) : null;
       estado("parado", seg ? `Sem conexão, último dado há ${seg}s` : "Sem conexão com o banco");
     }finally{ ocupado = false; }
   }
   ciclo(); setInterval(ciclo, INTERVALO);
   document.addEventListener("visibilitychange", ciclo);
-
-  // ---------- controles ----------
-  function setModo(m){ modo = m; $("bRank").setAttribute("aria-pressed", m==="rank"); $("bOrdem").setAttribute("aria-pressed", m==="ordem"); if (ultimo) render(ultimo); }
-  $("bRank").onclick = () => setModo("rank");
-  $("bOrdem").onclick = () => setModo("ordem");
-  $("bCsv").onclick = () => {
-    if (!ultimo) return;
-    const linhas = [["posicao","pitch","media","votos","nota_0","nota_1","nota_2","nota_3","nota_4","nota_5"]];
-    ordenar(ultimo.itens, "rank").forEach((it,i) => linhas.push([i+1, `"${it.titulo.replace(/"/g,'""')}"`, it.media == null ? "" : String(it.media).replace(".",","), it.votos, ...it.dist]));
-    const csv = "\ufeff" + linhas.map(l => l.join(";")).join("\n");
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([csv], { type:"text/csv;charset=utf-8" }));
-    a.download = `resultado-pitches-${new Date().toISOString().slice(0,16).replace(/[:T]/g,"-")}.csv`;
-    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  };
 })();
 </script>
 </body>
