@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A0A0A">
+<title>Votação dos pitches · Hackathon AltoQi</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/big-shoulders-display-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts.css">
+<script src="config.js"></script>
+<style>
+/* Tokens: Hackathon AltoQi — Design System Diamante (Figma) */
+:root{
+  --base:#0A0A0A; --superficie:#141414; --elevado:#1F1F1F; --borda:#2E2E2E;
+  --texto:#FFFFFF; --texto2:#C7C7C7; --apoio:#8A8A8A;
+  --verde:#25CE7B; --menta:#95E2C0; --floresta:#115134; --erro:#E5484D; --alerta:#F5A524;
+  --display:"Big Shoulders Display","Arial Narrow","Roboto Condensed",Impact,sans-serif;
+  --corpo:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;background:var(--base)}
+body{margin:0;background:var(--base);color:var(--texto);font-family:var(--corpo);line-height:1.5;
+  padding-bottom:calc(32px + env(safe-area-inset-bottom))}
+.wrap{max-width:560px;margin:0 auto;padding:0 20px}
+.eyebrow{font-family:var(--corpo);font-weight:600;font-size:.8125rem;letter-spacing:.18em;text-transform:uppercase;margin:0}
+
+header{padding:calc(20px + env(safe-area-inset-top)) 0 8px}
+.logo{display:block;width:132px;height:auto;margin:0 0 32px}
+header .eyebrow{color:var(--verde);margin-bottom:10px}
+h1{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:clamp(2rem,9vw,2.75rem);
+  line-height:.92;margin:0 0 24px;letter-spacing:0}
+.legenda{display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:.8125rem;color:var(--texto2);margin:0;line-height:1.35}
+.legenda b{display:block;font-family:var(--display);font-weight:900;font-size:2.25rem;line-height:.9;margin-bottom:4px;color:var(--apoio)}
+.legenda .max{text-align:right}
+.legenda .max b{color:var(--verde)}
+
+.progresso{position:sticky;top:0;z-index:5;background:var(--base);
+  padding:calc(14px + env(safe-area-inset-top)) 0 14px;margin-top:20px;border-bottom:1px solid var(--borda)}
+.progresso p{margin:0 0 8px;display:flex;justify-content:space-between;align-items:baseline}
+.progresso strong{font-family:var(--display);font-weight:800;font-size:1.375rem;letter-spacing:.02em;text-transform:uppercase}
+.progresso strong em{font-style:normal;color:var(--verde)}
+.progresso span{font-size:.75rem;color:var(--apoio)}
+.prog-trilho{height:4px;background:var(--elevado)}
+.prog-barra{height:100%;width:0;background:var(--verde);transition:width .3s ease}
+
+.aviso{display:none;margin:16px 0 0;padding:12px 14px;font-size:.875rem;border-left:3px solid var(--erro);background:var(--superficie);color:var(--texto)}
+.aviso.on{display:block}
+
+ol{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:12px}
+.pitch{background:var(--superficie);border:1px solid var(--borda);border-radius:4px;padding:16px 16px 12px;transition:border-color .2s ease}
+.pitch.feito{border-color:var(--borda)}
+.cab{display:grid;grid-template-columns:auto 1fr;column-gap:14px;align-items:start;margin-bottom:14px}
+.num{font-family:var(--display);font-weight:900;font-size:2rem;line-height:.85;color:var(--apoio);min-width:1.4em}
+.pitch.feito .num{color:var(--texto2)}
+.cab h2{font-size:1rem;font-weight:600;line-height:1.3;margin:0}
+.status{grid-column:2;font-size:.75rem;color:var(--apoio);min-height:1.2em;margin-top:4px}
+.status.salvo{color:var(--menta)}
+.status.erro,.status.encerrada{color:var(--erro)}
+
+.escala{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.escala button{appearance:none;border:0;background:transparent;padding:4px 0 0;margin:0;cursor:pointer;
+  display:flex;flex-direction:column;align-items:stretch;justify-content:flex-end;gap:8px;
+  height:84px;color:var(--apoio);font:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.escala .barra{display:block;height:calc(14px + var(--i) * 8px);border-radius:2px;background:var(--elevado);
+  transition:background-color .15s ease}
+.escala .rot{font-family:var(--display);font-weight:800;font-size:1.25rem;text-align:center;line-height:1}
+.escala button.cheio .barra{background:var(--verde)}
+.escala button.cheio .rot{color:var(--texto2)}
+.escala button[aria-pressed="true"] .rot{color:var(--verde)}
+.escala button:focus-visible{outline:2px solid var(--verde);outline-offset:3px}
+.escala button:disabled{cursor:not-allowed;opacity:.45}
+
+.acao{display:grid;grid-template-columns:1fr;gap:8px;margin-top:14px}
+.votar{appearance:none;border:0;border-radius:4px;background:var(--verde);color:var(--base);cursor:pointer;
+  font-family:var(--corpo);font-weight:600;font-size:.9375rem;letter-spacing:.06em;text-transform:uppercase;
+  min-height:52px;padding:0 16px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .1s ease,opacity .2s ease}
+.votar:active{transform:scale(.98)}
+.votar:disabled{background:var(--elevado);color:var(--apoio);cursor:not-allowed}
+.votar:focus-visible{outline:2px solid var(--verde);outline-offset:3px}
+.votar[hidden]{display:none}
+.confirmado{display:none;align-items:center;justify-content:space-between;gap:12px;min-height:52px;padding:0 14px;
+  border:1px solid var(--verde);border-radius:4px;background:rgba(37,206,123,.08)}
+.confirmado.on{display:flex}
+.confirmado strong{font-family:var(--display);font-weight:800;font-size:1.375rem;text-transform:uppercase;letter-spacing:.02em;color:var(--verde);
+  display:flex;align-items:center;gap:10px;white-space:nowrap}
+.confirmado span{font-size:.6875rem;line-height:1.3;color:var(--apoio);text-align:right;max-width:9.5em}
+.check{width:22px;height:22px;flex:none}
+.check path{stroke-dasharray:24;stroke-dashoffset:24}
+.confirmado.anima .check path{animation:traco .45s ease forwards}
+.confirmado:not(.anima) .check path{stroke-dashoffset:0}
+.confirmado.anima{animation:pop .35s ease}
+@keyframes traco{to{stroke-dashoffset:0}}
+@keyframes pop{0%{transform:scale(.96);opacity:.4}100%{transform:none;opacity:1}}
+.pitch.votado{border-color:var(--verde)}
+.pitch.votado .num{color:var(--verde)}
+.rodape{margin:28px 0 0;font-size:.8125rem;color:var(--apoio);text-align:center}
+.rodape.fim{color:var(--verde);font-weight:600}
+.assinatura{display:flex;justify-content:center;margin-top:32px;opacity:.5}
+.assinatura img{width:96px;height:auto}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img class="logo" src="assets/hackathon-wordmark.svg" alt="Hackathon AltoQi" width="132" height="33">
+    <p class="eyebrow" id="evento"></p>
+    <h1 id="pergunta"></h1>
+    <div class="legenda">
+      <div><b>0</b><span id="rotMin"></span></div>
+      <div class="max"><b>5</b><span id="rotMax"></span></div>
+    </div>
+  </header>
+
+  <div class="progresso" aria-live="polite">
+    <p><strong id="progTxt"><em>00</em>/09 votados</strong><span>Escolha a nota e toque em Votar</span></p>
+    <div class="prog-trilho"><div class="prog-barra" id="progBarra"></div></div>
+  </div>
+
+  <div class="aviso" id="aviso" role="alert"></div>
+  <ol id="lista"></ol>
+  <p class="rodape" id="rodape">Você pode alterar seu voto até a votação encerrar.</p>
+  <div class="assinatura"><img src="assets/hackathon-wordmark.svg" alt="" width="96" height="24"></div>
+</div>
+
+<script>
+(function(){
+  const C = window.VOTACAO_CONFIG;
+  const DEMO = new URLSearchParams(location.search).has("demo") || !C.SUPABASE_URL || C.SUPABASE_URL.includes("SEU-PROJETO");
+  const CHAVE = DEMO ? "votacao-pitches:demo" : "votacao-pitches:v1";
+  const $ = (id) => document.getElementById(id);
+  const dois = (n) => String(n).padStart(2, "0");
+
+  // ---------- identidade anônima do aparelho + estado local ----------
+  function lerLocal(){ try{ return JSON.parse(localStorage.getItem(CHAVE)) || {}; }catch(e){ return {}; } }
+  function gerarId(){
+    if (crypto.randomUUID) return crypto.randomUUID();
+    const b = crypto.getRandomValues(new Uint8Array(16)); b[6]=(b[6]&15)|64; b[8]=(b[8]&63)|128;
+    const h=[...b].map(x=>x.toString(16).padStart(2,"0")).join("");
+    return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
+  }
+  const local = lerLocal();
+  // notas = nota escolhida na tela; salvas = nota confirmada no banco
+  const estado = { voter: local.voter || gerarId(), rodada: local.rodada ?? null, notas: local.notas || {}, salvas: local.salvas || {}, encerrada:false };
+  const enviando = {};
+  function guardar(){ try{ localStorage.setItem(CHAVE, JSON.stringify({voter:estado.voter, rodada:estado.rodada, notas:estado.notas, salvas:estado.salvas})); }catch(e){} }
+  guardar();
+
+  // ---------- API ----------
+  function headers(){
+    const h = { "Content-Type":"application/json", apikey:C.SUPABASE_ANON_KEY };
+    if (C.SUPABASE_ANON_KEY.startsWith("eyJ")) h.Authorization = "Bearer " + C.SUPABASE_ANON_KEY;
+    return h;
+  }
+  async function rpc(fn, body){
+    if (DEMO){ await new Promise(r=>setTimeout(r, 350 + Math.random()*350)); return null; }
+    const r = await fetch(`${C.SUPABASE_URL}/rest/v1/rpc/${fn}`, { method:"POST", headers:headers(), body:JSON.stringify(body) });
+    if (!r.ok){
+      let msg = ""; try{ msg = (await r.json()).message || ""; }catch(e){}
+      const err = new Error(msg); err.codigo = msg.includes("votacao_encerrada") ? "encerrada" : "falha"; throw err;
+    }
+    return null;
+  }
+  // Lê se a votação está aberta e a "rodada" atual. Rodada nova = reset feito no banco: limpa este celular.
+  async function sincronizar(){
+    if (DEMO) return;
+    try{
+      const r = await fetch(`${C.SUPABASE_URL}/rest/v1/votacao_config?select=aberta,rodada`, { headers:headers(), cache:"no-store" });
+      const d = await r.json();
+      if (!Array.isArray(d) || !d[0]) return;
+      if (d[0].rodada != null && d[0].rodada !== estado.rodada){
+        const primeiraVez = estado.rodada === null && !Object.keys(estado.salvas).length;
+        estado.rodada = d[0].rodada;
+        if (!primeiraVez){ estado.notas = {}; estado.salvas = {}; }
+        guardar(); C.PITCHES.forEach(p => pintar(p.id)); atualizarProgresso();
+      }
+      if (d[0].aberta === false) marcarEncerrada();
+    }catch(e){}
+  }
+
+  // ---------- render ----------
+  $("evento").textContent = C.EVENTO + (DEMO ? " (modo demonstração)" : "");
+  $("pergunta").textContent = C.PERGUNTA;
+  $("rotMin").textContent = C.ROTULO_MIN;
+  $("rotMax").textContent = C.ROTULO_MAX;
+
+  const CHECK = '<svg class="check" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="#25CE7B" stroke-width="3" stroke-linecap="square"/></svg>';
+  const lista = $("lista");
+  C.PITCHES.forEach((p, idx) => {
+    const li = document.createElement("li");
+    li.className = "pitch"; li.dataset.id = p.id;
+    li.innerHTML = `<div class="cab"><span class="num">${dois(idx+1)}</span><h2></h2><span class="status" aria-live="polite"></span></div>
+      <div class="escala" role="group"></div>
+      <div class="acao">
+        <button type="button" class="votar">Votar</button>
+        <div class="confirmado" role="status"><strong>${CHECK}<b class="txt"></b></strong><span>Toque em outra nota para alterar</span></div>
+      </div>`;
+    li.querySelector("h2").textContent = p.titulo;
+    const esc = li.querySelector(".escala");
+    esc.setAttribute("aria-label", "Nota para " + p.titulo);
+    for (let n = 0; n <= 5; n++){
+      const b = document.createElement("button");
+      b.type = "button"; b.dataset.nota = n; b.style.setProperty("--i", n);
+      b.setAttribute("aria-pressed","false");
+      b.setAttribute("aria-label", `Nota ${n}` + (n===0 ? `, ${C.ROTULO_MIN}` : n===5 ? `, ${C.ROTULO_MAX}` : ""));
+      b.innerHTML = `<span class="barra"></span><span class="rot">${n}</span>`;
+      b.addEventListener("click", () => escolher(p.id, n));
+      esc.appendChild(b);
+    }
+    li.querySelector(".votar").addEventListener("click", () => votar(p.id));
+    lista.appendChild(li);
+    pintar(p.id);
+  });
+  atualizarProgresso();
+
+  function li(id){ return lista.querySelector(`.pitch[data-id="${id}"]`); }
+  function pintar(id, animar){
+    const el = li(id), nota = estado.notas[id], salva = estado.salvas[id];
+    const votado = salva !== undefined && nota === salva;
+    el.classList.toggle("feito", nota !== undefined && !votado);
+    el.classList.toggle("votado", votado);
+    el.querySelectorAll(".escala button").forEach(b => {
+      const n = +b.dataset.nota;
+      b.classList.toggle("cheio", nota !== undefined && n <= nota);
+      b.setAttribute("aria-pressed", String(n === nota));
+      b.disabled = estado.encerrada || !!enviando[id];
+    });
+    const btn = el.querySelector(".votar"), conf = el.querySelector(".confirmado");
+    conf.classList.toggle("on", votado);
+    conf.classList.toggle("anima", votado && !!animar);
+    conf.querySelector(".txt").textContent = votado ? `Votado: ${salva}` : "";
+    btn.hidden = votado;
+    if (enviando[id]){ btn.disabled = true; btn.textContent = "Enviando…"; }
+    else if (estado.encerrada){ btn.disabled = true; btn.textContent = "Votação encerrada"; }
+    else if (nota === undefined){ btn.disabled = true; btn.textContent = "Escolha uma nota"; }
+    else { btn.disabled = false; btn.textContent = salva !== undefined ? `Alterar voto para ${nota}` : `Votar ${nota}`; }
+  }
+  function mostrarStatus(id, txt, tipo){ const s = li(id).querySelector(".status"); s.textContent = txt || ""; s.className = "status " + (tipo || ""); }
+  function atualizarProgresso(){
+    const total = C.PITCHES.length;
+    const feitos = C.PITCHES.filter(p => estado.salvas[p.id] !== undefined).length;
+    $("progTxt").innerHTML = `<em>${dois(feitos)}</em>/${dois(total)} votados`;
+    $("progBarra").style.width = (feitos/total*100) + "%";
+    const rod = $("rodape");
+    if (estado.encerrada){ rod.textContent = "A votação foi encerrada. Obrigado por participar!"; rod.className = "rodape fim"; }
+    else if (feitos === total){ rod.textContent = "Todos os votos registrados. Obrigado! Você ainda pode alterar até a votação encerrar."; rod.className = "rodape fim"; }
+    else { rod.textContent = "Você pode alterar seu voto até a votação encerrar."; rod.className = "rodape"; }
+  }
+  function marcarEncerrada(){
+    if (estado.encerrada) return;
+    estado.encerrada = true;
+    const a = $("aviso"); a.textContent = "A votação foi encerrada. Novos votos não são mais registrados."; a.classList.add("on");
+    C.PITCHES.forEach(p => pintar(p.id));
+    atualizarProgresso();
+  }
+
+  // ---------- ações ----------
+  function escolher(id, nota){
+    if (estado.encerrada || enviando[id]) return;
+    estado.notas[id] = nota; guardar(); mostrarStatus(id, ""); pintar(id);
+  }
+  async function votar(id){
+    const nota = estado.notas[id];
+    if (nota === undefined || enviando[id] || estado.encerrada) return;
+    enviando[id] = true; mostrarStatus(id, ""); pintar(id);
+    let falha = null;
+    for (let t = 0; t < 3; t++){
+      try{ await rpc("registrar_voto", { p_voter: estado.voter, p_pitch: id, p_nota: nota }); falha = null; break; }
+      catch(e){ falha = e; if (e.codigo === "encerrada") break; await new Promise(r => setTimeout(r, 700 * (t+1))); }
+    }
+    enviando[id] = false;
+    if (falha){
+      if (falha.codigo === "encerrada"){ marcarEncerrada(); mostrarStatus(id, "Votação encerrada. Este voto não foi registrado.", "erro"); return; }
+      pintar(id); mostrarStatus(id, "Não foi possível enviar. Confira a conexão e toque em Votar de novo.", "erro"); return;
+    }
+    estado.salvas[id] = nota; guardar();
+    if (navigator.vibrate) navigator.vibrate([12, 40, 12]);
+    pintar(id, true); atualizarProgresso();
+  }
+
+  sincronizar();
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) sincronizar(); });
+})();
+</script>
+</body>
+</html>
