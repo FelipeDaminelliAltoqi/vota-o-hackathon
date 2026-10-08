@@ -26,15 +26,15 @@ window.VOTACAO_CONFIG = {
   // Endereço público da votação (vira o QR code no telão). Vazio = raiz do próprio site.
   URL_VOTACAO: "",
 
-  // Os ids precisam bater com a tabela "pitches" do banco.
+  // Ordem = ordem das apresentações. Os ids NÃO mudam (estão ligados aos votos e aos conflitos da banca).
   PITCHES: [
-    { id: 1, titulo: "Solicitação de compras e pagamentos" },
+    { id: 7, titulo: "Gestão da carteira de clientes governamentais" },
     { id: 2, titulo: "Plataforma de engajamento e desenvolvimento" },
-    { id: 3, titulo: "Captação de leads para B2B Escritórios" },
-    { id: 4, titulo: "Renovação automática" },
     { id: 5, titulo: "Enriquecimento inteligente da base de contatos" },
     { id: 6, titulo: "Testes com IA em aplicações desktop e web" },
-    { id: 7, titulo: "Gestão da carteira de clientes governamentais" },
-    { id: 8, titulo: "Fabricante 360 | Inteligência com IA" }
+    { id: 8, titulo: "Fabricante 360 | Inteligência com IA" },
+    { id: 3, titulo: "Captação de leads para B2B Escritórios" },
+    { id: 1, titulo: "Solicitação de compras e pagamentos" },
+    { id: 4, titulo: "Renovação automática" }
   ]
 };
