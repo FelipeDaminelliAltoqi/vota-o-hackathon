@@ -303,14 +303,12 @@ td select{min-height:36px;border-radius:4px;border:1px solid var(--borda);backgr
   }
   const opcoesImp = (sel) => `<option value="">Avalia todos</option>` + C.PITCHES.map(p => `<option value="${p.id}" ${sel === p.id ? "selected" : ""}>Não avalia: ${esc(p.titulo)}</option>`).join("");
   function renderMembros(){
-    $("tMembros").innerHTML = `<thead><tr><th>Jurado</th><th>Código</th><th>Conflito de interesse</th><th class="n">Notas</th><th>Status</th><th></th></tr></thead><tbody>` +
+    $("tMembros").innerHTML = `<thead><tr><th>Jurado</th><th>Conflito de interesse</th><th class="n">Notas</th><th>Status</th></tr></thead><tbody>` +
       (D.membros.length ? D.membros.map(m => { const imp = (m.impedidos || [])[0] ?? null; return `<tr><td>${esc(m.nome)}<span class="sub">${esc(m.email || "")}</span></td>
-        <td><span class="codigo">${esc(m.codigo)}</span></td>
         <td><select data-imp="${m.id}" aria-label="Conflito de ${esc(m.nome)}">${opcoesImp(imp)}</select></td>
         <td class="n">${m.votos}/${C.PITCHES.length - (m.impedidos || []).length}</td>
-        <td><button class="btn sec pequeno" data-ativo="${m.id}">${m.ativo ? "Ativo" : "Inativo"}</button></td>
-        <td><button class="btn sec pequeno" data-link="${esc(m.codigo)}">Copiar link</button></td></tr>`; }).join("")
-      : '<tr><td colspan="6" class="apoio">Nenhum jurado cadastrado.</td></tr>') + "</tbody>";
+        <td><button class="btn sec pequeno" data-ativo="${m.id}">${m.ativo ? "Ativo" : "Inativo"}</button></td></tr>`; }).join("")
+      : '<tr><td colspan="4" class="apoio">Nenhum jurado cadastrado.</td></tr>') + "</tbody>";
     $("tMembros").querySelectorAll("[data-imp]").forEach(sel => sel.onchange = async () => {
       const m = D.membros.find(x => x.id == sel.dataset.imp), pid = sel.value ? +sel.value : null;
       if (pid && !confirm(`${m.nome} deixa de avaliar "${tituloPitch(pid)}". Se já tiver nota nesse pitch, ela será apagada. Continuar?`)){ renderMembros(); return; }
@@ -321,16 +319,12 @@ td select{min-height:36px;border-radius:4px;border:1px solid var(--borda);backgr
       if (m.ativo && !confirm(`Desativar ${m.nome}? As notas deixam de contar no resultado (ficam guardadas).`)) return;
       try{ await chamar("admin_membro_ativo", { p_id:m.id, p_ativo:!m.ativo }); await carregar(); }catch(e){ toast(mensagem(e), true); }
     });
-    $("tMembros").querySelectorAll("[data-link]").forEach(b => b.onclick = async () => {
-      const url = `${urlBase}?c=${b.dataset.link}`;
-      try{ await navigator.clipboard.writeText(url); toast("Link copiado"); }catch(e){ prompt("Copie o link:", url); }
-    });
   }
   $("formMembro").addEventListener("submit", async (ev) => {
     ev.preventDefault();
     try{
       const r = await chamar("admin_add_membro", { p_nome:$("mNome").value.trim(), p_email:$("mEmail").value.trim(), p_impedido:$("mImp").value ? +$("mImp").value : null });
-      $("mNome").value = ""; $("mEmail").value = ""; $("mImp").value = ""; await carregar(); toast(`Jurado criado · código ${r.codigo}`);
+      $("mNome").value = ""; $("mEmail").value = ""; $("mImp").value = ""; await carregar(); toast("Jurado adicionado");
     }catch(e){ toast(mensagem(e), true); }
   });
 
@@ -388,7 +382,7 @@ td select{min-height:36px;border-radius:4px;border:1px solid var(--borda);backgr
       "Notas da banca": [["atualizado", "jurado", "email", "ativo", "pitch", ...CRIT.map(c => c.chave), "media"],
         ...D.votos_banca.map(v => [hora(v.atualizado_em), v.jurado, v.email || "", v.ativo ? "sim" : "não", v.pitch, ...CRIT.map(c => v[c.chave]), v.media])],
       Votantes: [["identificado_em", "email", "setor", "votos"], ...D.votantes.map(v => [hora(v.criado_em), v.email, v.setor, v.votos])],
-      Banca: [["nome", "email", "codigo", "ativo", "nao_avalia", "notas"], ...D.membros.map(m => [m.nome, m.email || "", m.codigo, m.ativo ? "sim" : "não", (m.impedidos || []).map(tituloPitch).join(", "), m.votos])]
+      Banca: [["nome", "email", "ativo", "nao_avalia", "notas"], ...D.membros.map(m => [m.nome, m.email || "", m.ativo ? "sim" : "não", (m.impedidos || []).map(tituloPitch).join(", "), m.votos])]
     };
   }
   const paraCsv = (t) => csv(t.map(l => l.map(c => typeof c === "number" ? numBR(c) : c)));
