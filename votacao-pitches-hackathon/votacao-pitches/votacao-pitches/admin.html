@@ -83,6 +83,13 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .st.encerrada::before{background:var(--erro)}
 tr.ao-vivo td{background:rgba(37,206,123,.06)}
 td select{min-height:36px;border-radius:4px;border:1px solid var(--borda);background:var(--elevado);color:var(--texto);font:inherit;font-size:.8125rem;padding:0 8px;max-width:240px}
+#tComp th.j{white-space:normal;text-align:center;min-width:64px;max-width:90px;line-height:1.3;vertical-align:bottom}
+#tComp th{vertical-align:bottom}
+#tComp td.cel{text-align:center;min-width:46px}
+#tComp td.pop{color:var(--verde);font-weight:700}
+#tComp td.conf{color:var(--apoio);font-size:.6875rem;text-transform:uppercase;letter-spacing:.06em}
+#tComp td.falta{color:var(--borda)}
+#tComp .conta{color:var(--texto2);font-size:.8125rem;white-space:nowrap}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--texto);color:var(--base);padding:12px 18px;border-radius:4px;font-weight:600;font-size:.875rem;z-index:20}
 .toast.erro{background:var(--erro);color:#fff}
 
@@ -139,6 +146,11 @@ td select{min-height:36px;border-radius:4px;border:1px solid var(--borda);backgr
   <section class="bloco">
     <div class="sec-cab"><div><h2>Ranking</h2><p id="explicaRanking"></p></div><button class="btn sec pequeno" id="bCsvRanking">CSV do ranking</button></div>
     <div class="tabela"><table id="tRanking"></table></div>
+  </section>
+
+  <section class="bloco">
+    <div class="sec-cab"><div><h2>Composição da nota final</h2><p>Todas as notas que entram na média de cada pitch: a nota do voto popular (1 nota) + a nota de cada jurado. Soma ÷ quantidade = nota final.</p></div><button class="btn sec pequeno" id="bCsvComp">CSV da composição</button></div>
+    <div class="tabela" style="max-height:none"><table id="tComp"></table></div>
   </section>
 
   <div class="grade g2 bloco">
@@ -260,7 +272,7 @@ td select{min-height:36px;border-radius:4px;border:1px solid var(--borda);backgr
     const c = D.config;
     chave($("cLiberado"), c.resultado_liberado, "Liberado", "Oculto");
     if (document.activeElement !== $("cDominio")) $("cDominio").value = c.dominio_email || "";
-    $("explicaRanking").textContent = "Cada voto = média de " + NOMES.join(", ") + ". Final = média entre a nota popular (vale 1 nota) e a nota de cada jurado.";
+    $("explicaRanking").textContent = "Cada voto = média de " + NOMES.join(", ") + ". Final = (nota popular + nota de cada jurado) ÷ quantidade de notas. Com 11 jurados: 12 notas ÷ 12.";
   }
   async function definir(body, botao){
     if (botao) botao.disabled = true;
@@ -286,13 +298,38 @@ td select{min-height:36px;border-radius:4px;border:1px solid var(--borda);backgr
     const crit = (pre, it) => CRIT.map(c => `<td class="n">${fmt(it[pre + "_" + c.chave])}</td>`).join("");
     $("tRanking").innerHTML = `<thead><tr><th>#</th><th>Pitch</th>
       <th class="n grupo">Popular</th>${NOMES.map(n => `<th class="n">${esc(n)}</th>`).join("")}
-      <th class="n grupo">Banca</th>${NOMES.map(n => `<th class="n">${esc(n)}</th>`).join("")}
-      <th class="n grupo">Final</th></tr></thead><tbody>` +
+      <th class="n grupo">Média dos jurados</th>${NOMES.map(n => `<th class="n">${esc(n)}</th>`).join("")}
+      <th class="n grupo">Notas na média</th><th class="n">Final</th></tr></thead><tbody>` +
       rk.map((it, i) => `<tr class="${i < 3 && it.final != null ? "top" : ""}"><td><span class="posicao">${dois(i + 1)}</span></td>
         <td class="quebra">${esc(it.titulo)}</td>
         <td class="n grupo"><b>${fmt(it.pop_media)}</b><span class="sub">${it.pop_votos} votos</span></td>${crit("pop", it)}
-        <td class="n grupo"><b>${fmt(it.banca_media)}</b><span class="sub">${it.banca_votos} jurados</span></td>${crit("banca", it)}
-        <td class="n grupo"><span class="final">${fmt(it.final)}</span></td></tr>`).join("") + "</tbody>";
+        <td class="n grupo"><b>${fmt(it.banca_media)}</b><span class="sub">${it.banca_votos} ${it.banca_votos === 1 ? "jurado" : "jurados"}</span></td>${crit("banca", it)}
+        <td class="n grupo">${(it.pop_media != null ? 1 : 0) + it.banca_votos}<span class="sub">${it.pop_media != null ? "1 popular + " : ""}${it.banca_votos} banca</span></td>
+        <td class="n"><span class="final">${fmt(it.final)}</span></td></tr>`).join("") + "</tbody>";
+    renderComposicao(rk);
+  }
+  // matriz: pitch × (popular + cada jurado) → soma ÷ n = final
+  function composicao(rk){
+    const jurados = D.membros.filter(m => m.ativo);
+    return { jurados, linhas: rk.map(it => {
+      const cel = jurados.map(m => {
+        if ((m.impedidos || []).includes(it.id)) return { tipo:"conf" };
+        const v = D.votos_banca.find(x => x.membro_id === m.id && x.pitch_id === it.id);
+        return v ? { tipo:"nota", valor:(v.inovar + v.conectar + v.transformar) / 3 } : { tipo:"falta" };
+      });
+      const notas = [...(it.pop_media != null ? [Number(it.pop_media)] : []), ...cel.filter(c => c.tipo === "nota").map(c => c.valor)];
+      const soma = notas.reduce((a, x) => a + x, 0);
+      return { it, cel, n:notas.length, soma };
+    }) };
+  }
+  function renderComposicao(rk){
+    const { jurados, linhas } = composicao(rk);
+    $("tComp").innerHTML = `<thead><tr><th>#</th><th>Pitch</th><th class="j">Popular (1 nota)</th>${jurados.map(m => `<th class="j" title="${esc(m.email || "")}">${esc(m.nome)}</th>`).join("")}
+      <th class="n grupo">Soma</th><th class="n">÷ Notas</th><th class="n">Final</th></tr></thead><tbody>` +
+      linhas.map((l, i) => `<tr class="${i < 3 && l.it.final != null ? "top" : ""}"><td><span class="posicao">${dois(i + 1)}</span></td><td class="quebra">${esc(l.it.titulo)}</td>
+        <td class="cel pop">${fmt(l.it.pop_media)}</td>
+        ${l.cel.map(c => c.tipo === "nota" ? `<td class="cel">${fmt(c.valor)}</td>` : c.tipo === "conf" ? '<td class="cel conf" title="Conflito de interesse">conflito</td>' : '<td class="cel falta" title="Ainda não avaliou">–</td>').join("")}
+        <td class="n grupo conta">${fmt(l.soma)}</td><td class="n conta">÷ ${l.n}</td><td class="n"><span class="final">${fmt(l.it.final)}</span></td></tr>`).join("") + "</tbody>";
   }
   function renderSetores(){
     const cont = {}; D.votantes.filter(v => v.votos > 0).forEach(v => cont[v.setor] = (cont[v.setor] || 0) + 1);
@@ -381,11 +418,15 @@ td select{min-height:36px;border-radius:4px;border:1px solid var(--borda);backgr
         ...D.votos_populares.map(v => [hora(v.criado_em), v.email, v.setor, v.pitch, ...CRIT.map(c => v[c.chave]), v.media])],
       "Notas da banca": [["atualizado", "jurado", "email", "ativo", "pitch", ...CRIT.map(c => c.chave), "media"],
         ...D.votos_banca.map(v => [hora(v.atualizado_em), v.jurado, v.email || "", v.ativo ? "sim" : "não", v.pitch, ...CRIT.map(c => v[c.chave]), v.media])],
+      "Composição da nota": (() => { const { jurados, linhas } = composicao(rk);
+        return [["posicao", "pitch", "popular", ...jurados.map(m => m.nome), "soma", "qtd_notas", "nota_final"],
+          ...linhas.map((l, i) => [i + 1, l.it.titulo, l.it.pop_media, ...l.cel.map(c => c.tipo === "nota" ? Math.round(c.valor * 100) / 100 : c.tipo === "conf" ? "conflito" : ""), Math.round(l.soma * 100) / 100, l.n, l.it.final])]; })(),
       Votantes: [["identificado_em", "email", "setor", "votos"], ...D.votantes.map(v => [hora(v.criado_em), v.email, v.setor, v.votos])],
       Banca: [["nome", "email", "ativo", "nao_avalia", "notas"], ...D.membros.map(m => [m.nome, m.email || "", m.ativo ? "sim" : "não", (m.impedidos || []).map(tituloPitch).join(", "), m.votos])]
     };
   }
   const paraCsv = (t) => csv(t.map(l => l.map(c => typeof c === "number" ? numBR(c) : c)));
+  $("bCsvComp").onclick = () => baixar(`composicao-nota-${carimbo()}.csv`, paraCsv(tabelas()["Composição da nota"]));
   $("bCsvRanking").onclick = () => baixar(`ranking-${carimbo()}.csv`, paraCsv(tabelas().Ranking));
   $("bCsvAba").onclick = () => {
     const nome = { pop:"Votos populares", banca:"Notas da banca", pessoas:"Votantes" }[aba];
