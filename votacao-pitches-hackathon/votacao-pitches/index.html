@@ -50,10 +50,10 @@ h1{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size
 
 ol{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:12px}
 .pitch{background:var(--superficie);border:1px solid var(--borda);border-radius:4px;padding:16px 16px 12px;transition:border-color .2s ease}
-.pitch.feito{border-color:var(--floresta)}
+.pitch.feito{border-color:var(--borda)}
 .cab{display:grid;grid-template-columns:auto 1fr;column-gap:14px;align-items:start;margin-bottom:14px}
 .num{font-family:var(--display);font-weight:900;font-size:2rem;line-height:.85;color:var(--apoio);min-width:1.4em}
-.pitch.feito .num{color:var(--verde)}
+.pitch.feito .num{color:var(--texto2)}
 .cab h2{font-size:1rem;font-weight:600;line-height:1.3;margin:0}
 .status{grid-column:2;font-size:.75rem;color:var(--apoio);min-height:1.2em;margin-top:4px}
 .status.salvo{color:var(--menta)}
@@ -72,6 +72,29 @@ ol{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:12px}
 .escala button:focus-visible{outline:2px solid var(--verde);outline-offset:3px}
 .escala button:disabled{cursor:not-allowed;opacity:.45}
 
+.acao{display:grid;grid-template-columns:1fr;gap:8px;margin-top:14px}
+.votar{appearance:none;border:0;border-radius:4px;background:var(--verde);color:var(--base);cursor:pointer;
+  font-family:var(--corpo);font-weight:600;font-size:.9375rem;letter-spacing:.06em;text-transform:uppercase;
+  min-height:52px;padding:0 16px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .1s ease,opacity .2s ease}
+.votar:active{transform:scale(.98)}
+.votar:disabled{background:var(--elevado);color:var(--apoio);cursor:not-allowed}
+.votar:focus-visible{outline:2px solid var(--verde);outline-offset:3px}
+.votar[hidden]{display:none}
+.confirmado{display:none;align-items:center;justify-content:space-between;gap:12px;min-height:52px;padding:0 14px;
+  border:1px solid var(--verde);border-radius:4px;background:rgba(37,206,123,.08)}
+.confirmado.on{display:flex}
+.confirmado strong{font-family:var(--display);font-weight:800;font-size:1.375rem;text-transform:uppercase;letter-spacing:.02em;color:var(--verde);
+  display:flex;align-items:center;gap:10px;white-space:nowrap}
+.confirmado span{font-size:.6875rem;line-height:1.3;color:var(--apoio);text-align:right;max-width:9.5em}
+.check{width:22px;height:22px;flex:none}
+.check path{stroke-dasharray:24;stroke-dashoffset:24}
+.confirmado.anima .check path{animation:traco .45s ease forwards}
+.confirmado:not(.anima) .check path{stroke-dashoffset:0}
+.confirmado.anima{animation:pop .35s ease}
+@keyframes traco{to{stroke-dashoffset:0}}
+@keyframes pop{0%{transform:scale(.96);opacity:.4}100%{transform:none;opacity:1}}
+.pitch.votado{border-color:var(--verde)}
+.pitch.votado .num{color:var(--verde)}
 .rodape{margin:28px 0 0;font-size:.8125rem;color:var(--apoio);text-align:center}
 .rodape.fim{color:var(--verde);font-weight:600}
 .assinatura{display:flex;justify-content:center;margin-top:32px;opacity:.5}
@@ -92,13 +115,13 @@ ol{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:12px}
   </header>
 
   <div class="progresso" aria-live="polite">
-    <p><strong id="progTxt"><em>0</em>/9 avaliados</strong><span>Salva automaticamente</span></p>
+    <p><strong id="progTxt"><em>00</em>/09 votados</strong><span>Escolha a nota e toque em Votar</span></p>
     <div class="prog-trilho"><div class="prog-barra" id="progBarra"></div></div>
   </div>
 
   <div class="aviso" id="aviso" role="alert"></div>
   <ol id="lista"></ol>
-  <p class="rodape" id="rodape">Você pode mudar qualquer nota até a votação encerrar.</p>
+  <p class="rodape" id="rodape">Você pode alterar seu voto até a votação encerrar.</p>
   <div class="assinatura"><img src="assets/hackathon-wordmark.svg" alt="" width="96" height="24"></div>
 </div>
 
@@ -108,8 +131,9 @@ ol{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:12px}
   const DEMO = new URLSearchParams(location.search).has("demo") || !C.SUPABASE_URL || C.SUPABASE_URL.includes("SEU-PROJETO");
   const CHAVE = DEMO ? "votacao-pitches:demo" : "votacao-pitches:v1";
   const $ = (id) => document.getElementById(id);
+  const dois = (n) => String(n).padStart(2, "0");
 
-  // ---------- identidade anônima do aparelho + rascunho local ----------
+  // ---------- identidade anônima do aparelho + estado local ----------
   function lerLocal(){ try{ return JSON.parse(localStorage.getItem(CHAVE)) || {}; }catch(e){ return {}; } }
   function gerarId(){
     if (crypto.randomUUID) return crypto.randomUUID();
@@ -118,10 +142,11 @@ ol{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:12px}
     return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
   }
   const local = lerLocal();
-  const estado = { voter: local.voter || gerarId(), notas: local.notas || {}, salvas: local.salvas || {}, encerrada:false };
-  function guardar(){ try{ localStorage.setItem(CHAVE, JSON.stringify({voter:estado.voter, notas:estado.notas, salvas:estado.salvas})); }catch(e){} }
+  // notas = nota escolhida na tela; salvas = nota confirmada no banco
+  const estado = { voter: local.voter || gerarId(), rodada: local.rodada ?? null, notas: local.notas || {}, salvas: local.salvas || {}, encerrada:false };
+  const enviando = {};
+  function guardar(){ try{ localStorage.setItem(CHAVE, JSON.stringify({voter:estado.voter, rodada:estado.rodada, notas:estado.notas, salvas:estado.salvas})); }catch(e){} }
   guardar();
-  const timers = {}, emVoo = {};
 
   // ---------- API ----------
   function headers(){
@@ -130,7 +155,7 @@ ol{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:12px}
     return h;
   }
   async function rpc(fn, body){
-    if (DEMO){ await new Promise(r=>setTimeout(r, 250 + Math.random()*300)); return null; }
+    if (DEMO){ await new Promise(r=>setTimeout(r, 350 + Math.random()*350)); return null; }
     const r = await fetch(`${C.SUPABASE_URL}/rest/v1/rpc/${fn}`, { method:"POST", headers:headers(), body:JSON.stringify(body) });
     if (!r.ok){
       let msg = ""; try{ msg = (await r.json()).message || ""; }catch(e){}
@@ -138,12 +163,20 @@ ol{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:12px}
     }
     return null;
   }
-  async function checarAberta(){
+  // Lê se a votação está aberta e a "rodada" atual. Rodada nova = reset feito no banco: limpa este celular.
+  async function sincronizar(){
     if (DEMO) return;
     try{
-      const r = await fetch(`${C.SUPABASE_URL}/rest/v1/votacao_config?select=aberta`, { headers:headers() });
+      const r = await fetch(`${C.SUPABASE_URL}/rest/v1/votacao_config?select=aberta,rodada`, { headers:headers(), cache:"no-store" });
       const d = await r.json();
-      if (Array.isArray(d) && d[0] && d[0].aberta === false) marcarEncerrada();
+      if (!Array.isArray(d) || !d[0]) return;
+      if (d[0].rodada != null && d[0].rodada !== estado.rodada){
+        const primeiraVez = estado.rodada === null && !Object.keys(estado.salvas).length;
+        estado.rodada = d[0].rodada;
+        if (!primeiraVez){ estado.notas = {}; estado.salvas = {}; }
+        guardar(); C.PITCHES.forEach(p => pintar(p.id)); atualizarProgresso();
+      }
+      if (d[0].aberta === false) marcarEncerrada();
     }catch(e){}
   }
 
@@ -153,12 +186,17 @@ ol{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:12px}
   $("rotMin").textContent = C.ROTULO_MIN;
   $("rotMax").textContent = C.ROTULO_MAX;
 
+  const CHECK = '<svg class="check" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="#25CE7B" stroke-width="3" stroke-linecap="square"/></svg>';
   const lista = $("lista");
   C.PITCHES.forEach((p, idx) => {
     const li = document.createElement("li");
     li.className = "pitch"; li.dataset.id = p.id;
-    li.innerHTML = `<div class="cab"><span class="num">${String(idx+1).padStart(2,"0")}</span><h2></h2><span class="status" aria-live="polite"></span></div>
-      <div class="escala" role="group"></div>`;
+    li.innerHTML = `<div class="cab"><span class="num">${dois(idx+1)}</span><h2></h2><span class="status" aria-live="polite"></span></div>
+      <div class="escala" role="group"></div>
+      <div class="acao">
+        <button type="button" class="votar">Votar</button>
+        <div class="confirmado" role="status"><strong>${CHECK}<b class="txt"></b></strong><span>Toque em outra nota para alterar</span></div>
+      </div>`;
     li.querySelector("h2").textContent = p.titulo;
     const esc = li.querySelector(".escala");
     esc.setAttribute("aria-label", "Nota para " + p.titulo);
@@ -168,81 +206,82 @@ ol{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:12px}
       b.setAttribute("aria-pressed","false");
       b.setAttribute("aria-label", `Nota ${n}` + (n===0 ? `, ${C.ROTULO_MIN}` : n===5 ? `, ${C.ROTULO_MAX}` : ""));
       b.innerHTML = `<span class="barra"></span><span class="rot">${n}</span>`;
-      b.addEventListener("click", () => definir(p.id, n));
+      b.addEventListener("click", () => escolher(p.id, n));
       esc.appendChild(b);
     }
+    li.querySelector(".votar").addEventListener("click", () => votar(p.id));
     lista.appendChild(li);
     pintar(p.id);
-    if (estado.notas[p.id] !== undefined && estado.notas[p.id] !== estado.salvas[p.id]) agendar(p.id, 200);
-    else if (estado.salvas[p.id] !== undefined) mostrarStatus(p.id, "salvo");
   });
   atualizarProgresso();
 
   function li(id){ return lista.querySelector(`.pitch[data-id="${id}"]`); }
-  function pintar(id){
-    const el = li(id), nota = estado.notas[id];
-    el.classList.toggle("feito", nota !== undefined);
+  function pintar(id, animar){
+    const el = li(id), nota = estado.notas[id], salva = estado.salvas[id];
+    const votado = salva !== undefined && nota === salva;
+    el.classList.toggle("feito", nota !== undefined && !votado);
+    el.classList.toggle("votado", votado);
     el.querySelectorAll(".escala button").forEach(b => {
       const n = +b.dataset.nota;
       b.classList.toggle("cheio", nota !== undefined && n <= nota);
       b.setAttribute("aria-pressed", String(n === nota));
-      b.disabled = estado.encerrada;
+      b.disabled = estado.encerrada || !!enviando[id];
     });
+    const btn = el.querySelector(".votar"), conf = el.querySelector(".confirmado");
+    conf.classList.toggle("on", votado);
+    conf.classList.toggle("anima", votado && !!animar);
+    conf.querySelector(".txt").textContent = votado ? `Votado: ${salva}` : "";
+    btn.hidden = votado;
+    if (enviando[id]){ btn.disabled = true; btn.textContent = "Enviando…"; }
+    else if (estado.encerrada){ btn.disabled = true; btn.textContent = "Votação encerrada"; }
+    else if (nota === undefined){ btn.disabled = true; btn.textContent = "Escolha uma nota"; }
+    else { btn.disabled = false; btn.textContent = salva !== undefined ? `Alterar voto para ${nota}` : `Votar ${nota}`; }
   }
-  function mostrarStatus(id, tipo){
-    const s = li(id).querySelector(".status");
-    const txt = { salvando:"Salvando…", salvo:"Nota salva", erro:"Não foi salva. Toque na nota de novo.", encerrada:"Votação encerrada" };
-    s.textContent = txt[tipo] || ""; s.className = "status " + tipo;
-  }
+  function mostrarStatus(id, txt, tipo){ const s = li(id).querySelector(".status"); s.textContent = txt || ""; s.className = "status " + (tipo || ""); }
   function atualizarProgresso(){
     const total = C.PITCHES.length;
-    const feitos = C.PITCHES.filter(p => estado.notas[p.id] !== undefined).length;
-    $("progTxt").innerHTML = `<em>${String(feitos).padStart(2,"0")}</em>/${String(total).padStart(2,"0")} avaliados`;
+    const feitos = C.PITCHES.filter(p => estado.salvas[p.id] !== undefined).length;
+    $("progTxt").innerHTML = `<em>${dois(feitos)}</em>/${dois(total)} votados`;
     $("progBarra").style.width = (feitos/total*100) + "%";
     const rod = $("rodape");
     if (estado.encerrada){ rod.textContent = "A votação foi encerrada. Obrigado por participar!"; rod.className = "rodape fim"; }
-    else if (feitos === total){ rod.textContent = "Tudo avaliado. Obrigado! Você ainda pode ajustar as notas até a votação encerrar."; rod.className = "rodape fim"; }
-    else { rod.textContent = "Você pode mudar qualquer nota até a votação encerrar."; rod.className = "rodape"; }
+    else if (feitos === total){ rod.textContent = "Todos os votos registrados. Obrigado! Você ainda pode alterar até a votação encerrar."; rod.className = "rodape fim"; }
+    else { rod.textContent = "Você pode alterar seu voto até a votação encerrar."; rod.className = "rodape"; }
   }
   function marcarEncerrada(){
     if (estado.encerrada) return;
     estado.encerrada = true;
-    const a = $("aviso"); a.textContent = "A votação foi encerrada. Novas notas não são mais registradas."; a.classList.add("on");
+    const a = $("aviso"); a.textContent = "A votação foi encerrada. Novos votos não são mais registrados."; a.classList.add("on");
     C.PITCHES.forEach(p => pintar(p.id));
     atualizarProgresso();
   }
 
-  // ---------- envio (debounce por pitch + retentativa) ----------
-  function definir(id, nota){
-    if (estado.encerrada) return;
-    estado.notas[id] = nota; guardar(); pintar(id); atualizarProgresso();
-    if (navigator.vibrate) navigator.vibrate(8);
-    agendar(id, 450);
+  // ---------- ações ----------
+  function escolher(id, nota){
+    if (estado.encerrada || enviando[id]) return;
+    estado.notas[id] = nota; guardar(); mostrarStatus(id, ""); pintar(id);
   }
-  function agendar(id, atraso){ clearTimeout(timers[id]); mostrarStatus(id, "salvando"); timers[id] = setTimeout(() => enviar(id, 0), atraso); }
-  async function enviar(id, tentativa){
-    if (emVoo[id]) return;                       // o envio em andamento reenvia ao terminar
+  async function votar(id){
     const nota = estado.notas[id];
-    if (nota === undefined) return;
-    if (nota === estado.salvas[id]){ mostrarStatus(id, "salvo"); return; }
-    emVoo[id] = true;
+    if (nota === undefined || enviando[id] || estado.encerrada) return;
+    enviando[id] = true; mostrarStatus(id, ""); pintar(id);
     let falha = null;
-    try{ await rpc("registrar_voto", { p_voter: estado.voter, p_pitch: id, p_nota: nota }); estado.salvas[id] = nota; guardar(); }
-    catch(e){ falha = e; }
-    emVoo[id] = false;
-    if (falha){
-      if (falha.codigo === "encerrada"){ marcarEncerrada(); mostrarStatus(id, "encerrada"); return; }
-      if (tentativa < 3){ timers[id] = setTimeout(() => enviar(id, tentativa+1), 800 * 2 ** tentativa); return; }
-      mostrarStatus(id, "erro"); return;
+    for (let t = 0; t < 3; t++){
+      try{ await rpc("registrar_voto", { p_voter: estado.voter, p_pitch: id, p_nota: nota }); falha = null; break; }
+      catch(e){ falha = e; if (e.codigo === "encerrada") break; await new Promise(r => setTimeout(r, 700 * (t+1))); }
     }
-    if (estado.notas[id] !== estado.salvas[id]) enviar(id, 0); else mostrarStatus(id, "salvo");
+    enviando[id] = false;
+    if (falha){
+      if (falha.codigo === "encerrada"){ marcarEncerrada(); mostrarStatus(id, "Votação encerrada. Este voto não foi registrado.", "erro"); return; }
+      pintar(id); mostrarStatus(id, "Não foi possível enviar. Confira a conexão e toque em Votar de novo.", "erro"); return;
+    }
+    estado.salvas[id] = nota; guardar();
+    if (navigator.vibrate) navigator.vibrate([12, 40, 12]);
+    pintar(id, true); atualizarProgresso();
   }
-  // conexão voltou: reenvia o que ficou pendente
-  window.addEventListener("online", () => C.PITCHES.forEach(p => {
-    if (estado.notas[p.id] !== undefined && estado.notas[p.id] !== estado.salvas[p.id]) agendar(p.id, 300);
-  }));
 
-  checarAberta();
+  sincronizar();
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) sincronizar(); });
 })();
 </script>
 </body>
